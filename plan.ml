@@ -6,5 +6,5 @@ let justin_clustering : unit dir =
     (partof archive "clustering")
     [ "justin" ; "clustering" ]
 
-let ensembl_gtf = Ensembl.transcripts `mouse
+let ensembl_gtf = Ensembl.Guizmin_plugin.transcripts `mouse
 
