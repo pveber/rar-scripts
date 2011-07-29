@@ -1,4 +1,8 @@
+module G = Genome
+open Batteries
+open Biocaml
 open Guizmin
+module Genome = G
 
 module Guizmin_plugin = struct
   let string_of_org = function
@@ -15,4 +19,19 @@ module Guizmin_plugin = struct
     []
 end
 
-let promoters gtf = assert false
+let stranded_location_of_row row = Gff.(
+  Genome.Location.make row.chr (fst row.pos) (snd row.pos),
+  match row.strand with
+    | Sense -> `Sense
+    | Antisense -> `Antisense
+    | _ -> raise (Invalid_argument "Ensembl.stranded_location_of_row")
+)
+
+let promoters ?(up = 1000) ?(down = 0) gtf = Gff.(
+  List.enum (to_list (of_file (Guizmin.path gtf)))
+  |> Enum.filter 
+      (fun row -> try row.feature = "exon" 
+		  && get_attribute row "exon_number" <> "1" with _ -> failwith (row_to_string row))
+  |> Enum.map stranded_location_of_row
+  |> Enum.map (fun (loc,strand) -> Genome.Location.upstream ~up ~down strand loc)
+)

@@ -1,8 +1,8 @@
 open Batteries
 
-type location = < chr : string ; st : int ; ed : int >
-type stranded_location = < chr : string ; st : int ; ed : int ;
-                           strand : [`Sense | `Antisense] > 
+
+
+
 
 module Location = struct
   open Batteries
@@ -29,6 +29,12 @@ module Location = struct
     Scanf.sscanf 
       s "%s@:%d@-%d" 
       make
+
+  let upstream ~up ~down strand loc = match strand with
+    | `Sense ->  
+      make loc.chr (loc.st - up + 1) (loc.st + down)
+    | `Antisense -> 
+      make loc.chr (loc.ed - down + 1) (loc.ed + up)
 
   let relmove l st ed = { l with st = l.st + st ; ed = l.ed + ed }
 
@@ -66,14 +72,16 @@ module Location = struct
   let compare (x : t) (y : t) = compare x y    
 end
 
+
 module Selection = struct
   type t = (string, ISet.t) PMap.t
 
   let of_locations e = Location.(
-    let accu = Accu.create ISet.empty (fun loc -> ISet.add_range loc#st loc#ed) in
-    Enum.iter 
-      (fun loc -> Accu.add accu loc#chr loc)
-      e ;
+    let accu = Accu.create ISet.empty (fun loc -> ISet.add_range loc.st loc.ed) in
+    Enum.iter (fun loc -> Accu.add accu loc.chr loc) e ;
     PMap.of_enum (Accu.enum accu)
   )
 end
+
+
+

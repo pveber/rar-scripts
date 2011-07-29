@@ -9,4 +9,4 @@ module Guizmin_plugin : sig
 
 end
 
-val promoters : gtf file -> Genome.location Enum.t
+val promoters : ?up:int -> ?down:int -> gtf file -> Genome.Location.t Enum.t

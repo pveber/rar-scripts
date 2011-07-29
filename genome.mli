@@ -1,10 +1,6 @@
 open Batteries
 open Pervasives
 
-type location = < chr : string ; st : int ; ed : int >
-type stranded_location = < chr : string ; st : int ; ed : int ;
-                           strand : [`Sense | `Antisense] > 
-
 module Location : sig
   type t = private {
     chr : string ;
@@ -24,6 +20,8 @@ module Location : sig
     form <string>:<int>-<int>, like chr1:23-45. Reciprocal to the
     function {!to_string}.  *)
 
+  val upstream : up:int -> down:int -> [`Sense | `Antisense] -> t -> t
+
   val included_in : t -> t -> bool
 
   val intersection : t -> t -> bool
@@ -40,5 +38,6 @@ end
 
 module Selection : sig
   type t = (string, ISet.t) PMap.t
-  val of_locations : location Enum.t -> t
+  val of_locations : Location.t Enum.t -> t
 end
+
