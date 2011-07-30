@@ -5,12 +5,14 @@ open Guizmin
 module Genome = G
 
 module Guizmin_plugin = struct
+  type gff 
+
   let string_of_org = function
   `mouse -> "mouse"
   let transcript_url = function
   `mouse -> "ftp://ftp.ensembl.org/pub/current_gtf/mus_musculus/Mus_musculus.NCBIM37.63.gtf.gz"
 
-  let transcripts x = target 
+  let gff x = target 
     [ "mkdir -p $@_download" ;
       sp "cd $@_download && wget %s" (transcript_url x) ;
       "cd $@_download && gunzip *.gz" ;
@@ -18,6 +20,13 @@ module Guizmin_plugin = struct
       "rm -rf $@_download" ]
     []
 end
+
+(*
+type item = Exon of string * int
+type annotation = item Biocaml.Genome.Annotation.t
+
+let annotation = assert false
+*)
 
 let stranded_location_of_row row = Gff.(
   Genome.Location.make row.chr (fst row.pos) (snd row.pos),
@@ -28,7 +37,7 @@ let stranded_location_of_row row = Gff.(
 )
 
 let promoters ?(up = 1000) ?(down = 0) gtf = Gff.(
-  List.enum (to_list (of_file (Guizmin.path gtf)))
+  List.enum (to_list (of_file ~version:2 (Guizmin.path gtf)))
   |> Enum.filter 
       (fun row -> try row.feature = "exon" 
 		  && get_attribute row "exon_number" <> "1" with _ -> failwith (row_to_string row))
