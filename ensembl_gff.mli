@@ -1,4 +1,6 @@
 open Batteries
+
+(*
 open Guizmin
 
 module Guizmin_plugin : sig
@@ -8,6 +10,7 @@ module Guizmin_plugin : sig
     (** Transcript annotation downloaded from ftp://ftp.ensembl.org/pub/current_gtf/ 
 	with a minor change: chromosome names are changed to chr<n> instead of <n> *)
 end
+*)
 
 (*  
 type strand = Biocaml.Gff.strand
@@ -16,5 +19,5 @@ type annotation = item Genome.Annotation.t
     
 val annotation : Guizmin.gff file -> annotation
 *)
-val promoters : ?up:int -> ?down:int -> Guizmin_plugin.gff file -> Genome.Location.t Enum.t
+val promoters : ?up:int -> ?down:int -> string -> RarGenome.Location.t Enum.t
 

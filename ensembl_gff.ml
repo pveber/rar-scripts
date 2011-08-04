@@ -1,9 +1,32 @@
-module G = Genome
 open Batteries
 open Biocaml
-open Guizmin
-module Genome = G
+(* open Guizmin *)
 
+(*
+type item = Exon of string * int
+type annotation = item Biocaml.Genome.Annotation.t
+
+let annotation = assert false
+*)
+
+let stranded_location_of_row row = Gff.(
+  RarGenome.Location.make row.chr (fst row.pos) (snd row.pos),
+  match row.strand with
+    | Sense -> `Sense
+    | Antisense -> `Antisense
+    | _ -> raise (Invalid_argument "Ensembl.stranded_location_of_row")
+)
+
+let promoters ?(up = 1000) ?(down = 0) path = Gff.(
+  List.enum (to_list (of_file ~version:2 path))
+  |> Enum.filter 
+      (fun row -> try row.feature = "exon" 
+		  && get_attribute row "exon_number" <> "1" with _ -> failwith (row_to_string row))
+  |> Enum.map stranded_location_of_row
+  |> Enum.map (fun (loc,strand) -> RarGenome.Location.upstream ~up ~down strand loc)
+)
+
+(*
 module Guizmin_plugin = struct
   type gff 
 
@@ -20,27 +43,4 @@ module Guizmin_plugin = struct
       "rm -rf $@_download" ]
     []
 end
-
-(*
-type item = Exon of string * int
-type annotation = item Biocaml.Genome.Annotation.t
-
-let annotation = assert false
 *)
-
-let stranded_location_of_row row = Gff.(
-  Genome.Location.make row.chr (fst row.pos) (snd row.pos),
-  match row.strand with
-    | Sense -> `Sense
-    | Antisense -> `Antisense
-    | _ -> raise (Invalid_argument "Ensembl.stranded_location_of_row")
-)
-
-let promoters ?(up = 1000) ?(down = 0) gtf = Gff.(
-  List.enum (to_list (of_file ~version:2 (Guizmin.path gtf)))
-  |> Enum.filter 
-      (fun row -> try row.feature = "exon" 
-		  && get_attribute row "exon_number" <> "1" with _ -> failwith (row_to_string row))
-  |> Enum.map stranded_location_of_row
-  |> Enum.map (fun (loc,strand) -> Genome.Location.upstream ~up ~down strand loc)
-)
