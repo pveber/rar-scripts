@@ -81,6 +81,18 @@ module Selection = struct
     Enum.iter (fun loc -> Accu.add accu loc.chr loc) e ;
     PMap.of_enum (Accu.enum accu)
   )
+
+  let inter u v =
+    PMap.foldi
+      (fun k set_u accu ->
+	 try 
+	   let set_v = PMap.find k v in
+	   PMap.add k (ISet.inter set_u set_v) accu
+	 with Not_found -> accu)
+      u PMap.empty
+
+  let length x = 
+    PMap.fold (fun set accu -> ISet.cardinal set + accu) x 0
 end
 
 

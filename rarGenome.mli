@@ -39,5 +39,7 @@ end
 module Selection : sig
   type t = (string, ISet.t) PMap.t
   val of_locations : Location.t Enum.t -> t
+  val inter : t -> t -> t
+  val length : t -> int
 end
 
