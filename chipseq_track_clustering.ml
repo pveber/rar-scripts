@@ -34,4 +34,13 @@ let sample_sim_matrix samples =
     (Array.length samples)
     (fun i j -> jaccard_sim selections.(i) selections.(j))
 
-  
+let sample_hclust_plot samples path = 
+  let rp = R.make () 
+  and s = sample_sim_matrix samples in
+  let dm = Array.map (Array.map (fun x -> 1. -. x)) s in
+  R.pdf rp path ;
+  R.matrix rp "dm" dm ;
+  R.c "d <- as.dist(dm)" ;
+  R.c "plot(hclust(d))" ;
+  R.devoff rp ;
+  R.close rp
