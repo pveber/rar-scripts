@@ -1,9 +1,9 @@
 open Batteries
+open Genome
 
 
 
-
-
+(*
 module Location = struct
   open Batteries
   open Printf
@@ -71,7 +71,7 @@ module Location = struct
       
   let compare (x : t) (y : t) = compare x y    
 end
-
+*)
 
 module Selection = struct
   type t = (string, ISet.t) PMap.t

@@ -1,6 +1,8 @@
 open Batteries
 open Pervasives
+open Genome
 
+(*
 module Location : sig
   type t = private {
     chr : string ;
@@ -35,6 +37,7 @@ module Location : sig
   val position : from:t -> t -> int
   val compare : t -> t -> int
 end
+*)
 
 module Selection : sig
   type t = (string, ISet.t) PMap.t
