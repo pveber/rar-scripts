@@ -2,6 +2,7 @@ open Batteries
 open Oregon
 open Target.Infix
 open Genome
+open RarGenome
 
 let selection_of_bed bed = 
   Tsv.enum bed
@@ -28,7 +29,7 @@ let symmatrix_init n f =
   
 let sample_sim_matrix samples = 
   let selections = Array.map
-    (fun s -> selection_of_bed (B.Chipseq.peaks s))
+    (fun s -> selection_of_bed (B.B.Chipseq.macs_peaks s))
     samples in
   symmatrix_init 
     (Array.length samples)
@@ -38,10 +39,10 @@ let sample_hclust_plot samples path =
   let rp = R.make () 
   and s = sample_sim_matrix samples in
   let dm = Array.map (Array.map (fun x -> 1. -. x)) s in
-  let name s = String.quote (B.Chipseq.string_of_sample s) in
+  let name s = String.quote (B.B.Chipseq.string_of_sample s) in
   R.pdf rp path ;
   R.matrix rp "dm" dm ;
   R.c rp "d <- as.dist(dm)" ;
-  R.c rp "plot(hclust(d),labels=c(%s))" (String.concat "," (List.map name samples)) ;
+  R.c rp "plot(hclust(d),labels=c(%s))" (String.concat "," (Array.map name samples |> Array.to_list)) ;
   R.devoff rp ;
   R.close rp
