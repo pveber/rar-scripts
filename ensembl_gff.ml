@@ -1,6 +1,7 @@
 open Batteries
-open Biocaml
+module Gff = Biocaml.Gff
 (* open Guizmin *)
+open Genome
 
 (*
 type item = Exon of string * int
@@ -10,7 +11,7 @@ let annotation = assert false
 *)
 
 let stranded_location_of_row row = Gff.(
-  RarGenome.Location.make row.chr (fst row.pos) (snd row.pos),
+  Location.make row.chr (fst row.pos) (snd row.pos),
   match row.strand with
     | Sense -> `Sense
     | Antisense -> `Antisense
@@ -23,7 +24,7 @@ let promoters ?(up = 1000) ?(down = 0) path = Gff.(
       (fun row -> try row.feature = "exon" 
 		  && get_attribute row "exon_number" <> "1" with _ -> failwith (row_to_string row))
   |> Enum.map stranded_location_of_row
-  |> Enum.map (fun (loc,strand) -> RarGenome.Location.upstream ~up ~down strand loc)
+  |> Enum.map (fun (loc,strand) -> RarGenome.location_upstream ~up ~down strand loc)
 )
 
 (*

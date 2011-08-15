@@ -1,4 +1,5 @@
 open Batteries
+open Genome
 
 (*
 open Guizmin
@@ -19,5 +20,5 @@ type annotation = item Genome.Annotation.t
     
 val annotation : Guizmin.gff file -> annotation
 *)
-val promoters : ?up:int -> ?down:int -> string -> RarGenome.Location.t Enum.t
+val promoters : ?up:int -> ?down:int -> string -> Location.t Enum.t
 

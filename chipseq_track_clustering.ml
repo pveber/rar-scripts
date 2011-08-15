@@ -38,9 +38,10 @@ let sample_hclust_plot samples path =
   let rp = R.make () 
   and s = sample_sim_matrix samples in
   let dm = Array.map (Array.map (fun x -> 1. -. x)) s in
+  let name s = String.quote (B.Chipseq.string_of_sample s) in
   R.pdf rp path ;
   R.matrix rp "dm" dm ;
-  R.c "d <- as.dist(dm)" ;
-  R.c "plot(hclust(d))" ;
+  R.c rp "d <- as.dist(dm)" ;
+  R.c rp "plot(hclust(d),labels=c(%s))" (String.concat "," (List.map name samples)) ;
   R.devoff rp ;
   R.close rp

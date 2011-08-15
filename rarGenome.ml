@@ -73,6 +73,14 @@ module Location = struct
 end
 *)
 
+let location_upstream ~up ~down strand loc = Location.(
+  match strand with
+    | `Sense ->  
+	make loc.chr (loc.st - up + 1) (loc.st + down)
+    | `Antisense -> 
+	make loc.chr (loc.ed - down + 1) (loc.ed + up)
+)
+
 module Selection = struct
   type t = (string, ISet.t) PMap.t
 

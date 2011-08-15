@@ -39,6 +39,8 @@ module Location : sig
 end
 *)
 
+val location_upstream : up:int -> down:int -> [`Sense | `Antisense] -> Location.t -> Location.t
+
 module Selection : sig
   type t = (string, ISet.t) PMap.t
   val of_locations : Location.t Enum.t -> t
