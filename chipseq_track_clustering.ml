@@ -29,7 +29,7 @@ let symmatrix_init n f =
   
 let sample_sim_matrix samples = 
   let selections = Array.map
-    (fun s -> selection_of_bed (B.B.Chipseq.macs_peaks s))
+    (B.B.Chipseq.macs_peaks |- Macs.filter ~pvalue:1e-9 |- selection_of_bed)
     samples in
   symmatrix_init 
     (Array.length samples)
