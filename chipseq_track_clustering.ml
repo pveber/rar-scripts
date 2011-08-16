@@ -1,8 +1,11 @@
 open Batteries
+open Printf
 open Oregon
 open Target.Infix
 open Genome
 open RarGenome
+
+let sh = Sle.sh
 
 let selection_of_bed bed = 
   Tsv.enum bed
@@ -37,11 +40,21 @@ let dist_of_sim m =
 
 let dist_matrix = sim_matrix |- dist_of_sim
 
-let tracks_of_samples samples = 
+let recenter n l = Location.(
+  let i = (l.st + l.ed) / 2 in
+  move l (i - n) (i + n)
+)
+
+let macs_recenter n p = Location.(
+  let i = p#loc.st + p#summit in
+  move p#loc (i - n) (i + n)
+)
+
+let tracks_of_samples radius samples = 
   Array.map
     (fun s -> 
        B.B.Chipseq.(string_of_sample s,
-		    (macs_peaks |- Macs.filter ~pvalue:1e-9 |- selection_of_bed) s))
+		    (macs_peaks |- Macs.filter ~pvalue:1e-9 |- Macs.locations_around_summit ~radius |- selection_of_bed) s))
     (Array.of_list samples)
 
 type col es_tsv = {
@@ -70,25 +83,25 @@ let p300_peaks = es_peaks "GSM288359/GSM288359_ES_p300.txt.gz"
 let suz12_peaks = es_peaks "GSM288360/GSM288360_ES_Suz12.txt.gz"
 
 
-let es_selection x = 
+let es_selection n x = 
   Tsv.enum x 
-  |> Enum.map (fun x -> Location.(relmove x.loc (-200) (200)))
+  |> Enum.map (fun x -> recenter n x.loc)
   |> RarGenome.Selection.of_locations
 
-let es_tracks () = [|
-  "Nanog", es_selection nanog_peaks ;
-  "Oct4", es_selection oct4_peaks ;
-  "Sox2", es_selection sox2_peaks ;
-  "Smad1", es_selection smad1_peaks ;
-  "E2f1", es_selection e2f1_peaks ;
-  "Tcfcp2l1", es_selection tcfcp2l1_peaks ;
-  "Zfx", es_selection zfx_peaks ;
-  "Stat3", es_selection stat3_peaks ;
-  "Klf4", es_selection klf4_peaks ;
-  "c-Myc", es_selection c_myc_peaks ;
-  "n-Myc", es_selection n_myc_peaks ;
-  "p300", es_selection p300_peaks ;
-  "Suz12", es_selection suz12_peaks ;
+let es_tracks n = [|
+  "Nanog", es_selection n nanog_peaks ;
+  "Oct4", es_selection n oct4_peaks ;
+  "Sox2", es_selection n sox2_peaks ;
+  "Smad1", es_selection n smad1_peaks ;
+  "E2f1", es_selection n e2f1_peaks ;
+  "Tcfcp2l1", es_selection n tcfcp2l1_peaks ;
+  "Zfx", es_selection n zfx_peaks ;
+  "Stat3", es_selection n stat3_peaks ;
+  "Klf4", es_selection n klf4_peaks ;
+  "c-Myc", es_selection n c_myc_peaks ;
+  "n-Myc", es_selection n n_myc_peaks ;
+  "p300", es_selection n p300_peaks ;
+  "Suz12", es_selection n suz12_peaks ;
 |]
 
 let sample_hclust_plot tracks path = 
