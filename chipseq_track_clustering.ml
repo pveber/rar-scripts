@@ -27,22 +27,48 @@ let symmatrix_init n f =
   done ;
   mat
   
-let sample_sim_matrix samples = 
-  let selections = Array.map
-    (B.B.Chipseq.macs_peaks |- Macs.filter ~pvalue:1e-9 |- selection_of_bed)
-    samples in
+let sim_matrix tracks = 
   symmatrix_init 
-    (Array.length samples)
-    (fun i j -> jaccard_sim selections.(i) selections.(j))
+    (Array.length tracks)
+    (fun i j -> jaccard_sim (snd tracks.(i)) (snd tracks.(j)))
 
-let sample_hclust_plot samples path = 
+let dist_of_sim m = 
+  Array.map (Array.map (fun x -> 1. -. x)) m
+
+let dist_matrix = sim_matrix |- dist_of_sim
+
+let tracks_of_samples samples = 
+  Array.map
+    (fun s -> 
+       B.B.Chipseq.(string_of_sample s,
+		    (macs_peaks |- Macs.filter ~pvalue:1e-9 |- selection_of_bed) s))
+    samples
+
+type col es_tsv = {
+  loc : Location ;
+  x : int
+}
+
+let es_peaks path = 
+  Misc.wget 
+    ~gunzip:true
+    ("ftp://ftp.ncbi.nlm.nih.gov/pub/geo/DATA/supplementary/samples/GSM288nnn/" ^ path)
+    Tsv.({has_header = false ; parse = Es_tsv.of_array })
+
+let oct4_peaks = es_peaks "GSM288346/GSM288346_ES_Oct4.txt.gz"
+
+let sample_hclust_plot tracks path = 
   let rp = R.make () 
-  and s = sample_sim_matrix samples in
-  let dm = Array.map (Array.map (fun x -> 1. -. x)) s in
-  let name s = String.quote (B.B.Chipseq.string_of_sample s) in
+  and dm = dist_matrix tracks
+  and labels = 
+    Array.map
+      (fst |- String.quote)
+      tracks
+    |> Array.to_list
+    |> String.concat "," in
   R.pdf rp path ;
   R.matrix rp "dm" dm ;
   R.c rp "d <- as.dist(dm)" ;
-  R.c rp "plot(hclust(d),labels=c(%s))" (String.concat "," (Array.map name samples |> Array.to_list)) ;
+  R.c rp "plot(hclust(d),labels=c(%s))" labels ;
   R.devoff rp ;
   R.close rp
