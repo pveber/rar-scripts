@@ -42,7 +42,7 @@ let dist_matrix = sim_matrix |- dist_of_sim
 
 let recenter n l = Location.(
   let i = (l.st + l.ed) / 2 in
-  move l (i - n) (i + n)
+  move l (max 0 (i - n)) (i + n)
 )
 
 let macs_recenter n p = Location.(
@@ -103,6 +103,117 @@ let es_tracks n = [|
   "p300", es_selection n p300_peaks ;
   "Suz12", es_selection n suz12_peaks ;
 |]
+
+let rar_es url = Target.F.make 
+  (object
+     method id = sprintf "Chipseq_track_clustering.rar_es[%s]" url
+     method deps = []
+     method build path = 
+       sh "mkdir -p %s.tmp" path ;
+       sh "wget -O %s.tmp/GSM.gz %s" path url ;
+       sh "gunzip %s.tmp/GSM.gz" path ;
+       sh "mv %s.tmp/GSM %s" path path ;
+       sh "rm -rf %s.tmp" path
+     method ty = Tsv.({ has_header = true ; parse = (fun x -> Location.of_string ("chr" ^ x.(0))) })
+   end)
+
+let rar_es_d2 = rar_es "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM482nnn/GSM482749/GSM482749%5FRARd2%5Fvs%5FWCE%2Epeaks%2Etxt%2Egz"
+
+let rar_es_d2_8 = rar_es "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM482nnn/GSM482750/GSM482750%5FRARd2p8h%5Fvs%5FWCE%2Epeaks%2Etxt%2Egz"
+
+let rar_es_selection n x = 
+  Tsv.enum x 
+  |> Enum.map (fun x -> recenter n x)
+  |> RarGenome.Selection.of_locations
+
+let rar_es_tracks n = [|
+   "RAR-ES D2", rar_es_selection n rar_es_d2 ;
+   "RAR-ES D2 + 8", rar_es_selection n rar_es_d2_8 ;
+|]
+
+
+
+let smad2_es url = Target.F.make 
+  (object
+     method id = sprintf "Chipseq_track_clustering.smad2_es[%s]" url
+     method deps = []
+     method build path = 
+       sh "mkdir -p %s.tmp" path ;
+       sh "wget -O %s.tmp/GSM.gz %s" path url ;
+       sh "gunzip %s.tmp/GSM.gz" path ;
+       sh "mv %s.tmp/GSM %s" path path ;
+       sh "rm -rf %s.tmp" path
+     method ty = Tsv.({ has_header = true ; parse = (fun x -> Location.make x.(0) (int_of_string x.(1)) (int_of_string x.(1))) })
+   end)
+
+let smad2_es_18h_activin = smad2_es "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM578nnn/GSM578474/GSM578474%5FACT%5FIPvsWCE%5Fpeaks%2Etxt%2Egz"
+let smad2_es_18h_sb = smad2_es "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM578nnn/GSM578476/GSM578476%5FSB%5FIPvsWCE%5Fpeaks%2Etxt%2Egz"
+let smad2_es_18h_dmso = smad2_es "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM578nnn/GSM578475/GSM578475%5FDMSO%5FIPvsWCE%5Fpeaks%2Etxt%2Egz"
+
+let smad2_es_selection n x =
+  Tsv.enum x
+  |> Enum.map (fun x -> recenter n x)
+  |> RarGenome.Selection.of_locations
+
+let smad2_es_tracks n = [|
+   "pSMAD2-ES 18h + activin", smad2_es_selection n smad2_es_18h_activin ;
+   "pSMAD2-ES 18h + SB", smad2_es_selection n smad2_es_18h_sb ;
+   "pSMAD2-ES 18h + DMSO", smad2_es_selection n smad2_es_18h_dmso ;
+|]
+
+let gsm_fetch ty url = Target.F.make
+  (object
+     method id = sprintf "Chipseq_track_clustering.gsm_fetch[%s]" url
+     method deps = []
+     method build path =
+       sh "mkdir -p %s.tmp" path ;
+       sh "wget -O %s.tmp/GSM.gz %s" path url ;
+       sh "gunzip %s.tmp/GSM.gz" path ;
+       sh "mv %s.tmp/GSM %s" path path ;
+       sh "rm -rf %s.tmp" path
+     method ty = ty
+   end)
+
+
+module Schnetz_dataset = struct
+  (* http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE22341 *)
+
+  let ty = Tsv.({ has_header = false ; 
+		  parse = new Bed.base_parser })
+
+  let p300_high = gsm_fetch ty "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM558nnn/GSM558675/GSM558675%5Fp300%5Fpeak%5FHigh%5Fthresh%2Etxt%2Egz"
+  let p300_low = gsm_fetch ty "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM558nnn/GSM558675/GSM558675%5Fp300%5Fpeak%5FLow%5Fthresh%2Etxt%2Egz"
+  let p300_middle = gsm_fetch ty "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM558nnn/GSM558675/GSM558675%5Fp300%5Fpeak%5FMiddle%5Fthresh%2Etxt%2Egz"
+
+  let chd7_high = gsm_fetch ty "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM558nnn/GSM558674/GSM558674%5FCHD7%5Fpeak%5FHigh%5Fthresh%2Etxt%2Egz"
+  let chd7_low = gsm_fetch ty "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM558nnn/GSM558674/GSM558674%5FCHD7%5Fpeak%5FLow%5Fthresh%2Etxt%2Egz"
+  let chd7_middle = gsm_fetch ty "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samples/GSM558nnn/GSM558674/GSM558674%5FCHD7%5Fpeak%5FMiddle%5Fthresh%2Etxt%2Egz"
+
+  let selection n x =
+    Tsv.enum x
+    |> Enum.map (fun x -> recenter n x#loc)
+    |> RarGenome.Selection.of_locations
+
+  let tracks n = [|
+    "Schnetz p300 high", selection n p300_high ;
+    "Schnetz p300 low", selection n p300_low ;
+    "Schnetz p300 middle", selection n p300_middle ;
+    "Schnetz Chd7 high", selection n chd7_high ;
+    "Schnetz Chd7 low", selection n chd7_low ;
+    "Schnetz Chd7 middle", selection n chd7_middle ;
+  |]
+
+end
+
+
+
+let all_tracks n = Array.concat [
+  es_tracks n ;
+  tracks_of_samples n B.B.Chipseq.samples ;
+  rar_es_tracks n ;
+  smad2_es_tracks n ;
+  Schnetz_dataset.tracks n ;
+]
 
 let sample_hclust_plot tracks path = 
   let rp = R.make () 
