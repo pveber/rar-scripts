@@ -213,7 +213,7 @@ end
 
 let all_tracks n = Array.concat [
   Wei_dataset.tracks n ;
-  tracks_of_samples n B.B.Chipseq.samples ;
+  tracks_of_samples n Selected_chipseq_regions.conditions ;
   rar_es_tracks n ;
   smad2_es_tracks n ;
   Schnetz_dataset.tracks n ;

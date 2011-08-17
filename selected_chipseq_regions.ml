@@ -5,27 +5,58 @@ open Sle.Infix
 open Printf
 open Target.Infix
 
-let validated_chipseq_samples = 
-  [ `F9_ATRA_panRAR_1 ;
-    `F9_WT_panRAR_1 ; `F9_WT_panRXR_1 ; `F9_ATRA24_panRAR_1 ;
-    `F9_ATRA24_panRXR_1 ; `F9_ATRA48_panRAR_1 ; `F9_ATRA48_panRXR_1 ;
-    `F9_ATRA2_panRXR_1 ]
+let conditions = [ 
+  `F9_WT_panRAR_1 ; 
+  `F9_ATRA_panRAR_1 ;
+  `F9_ATRA24_panRAR_1 ;
+  `F9_ATRA48_panRAR_1 ;
+  `F9_WT_panRXR_1 ; 
+  `F9_ATRA2_panRXR_1 ;
+  `F9_ATRA24_panRXR_1 ; 
+  `F9_ATRA48_panRXR_1
+]
+
+let paired_conditions = [
+  `F9_WT_panRAR_1, `F9_WT_panRXR_1 ;  
+  `F9_ATRA_panRAR_1, `F9_ATRA2_panRXR_1 ;
+  `F9_ATRA24_panRAR_1, `F9_ATRA24_panRXR_1 ;
+  `F9_ATRA48_panRAR_1, `F9_ATRA48_panRXR_1
+]
+
+module Region = struct 
+  type t = {
+    loc : Location.t ;
+    pval : float array ;
+    intens : float array
+  }
+
+  let index = function
+      `F9_WT_panRAR_1 -> 0
+    | `F9_ATRA_panRAR_1 -> 1
+    | `F9_ATRA24_panRAR_1 -> 2
+    | `F9_ATRA48_panRAR_1 -> 3
+    | `F9_WT_panRXR_1 -> 4
+    | `F9_ATRA2_panRXR_1 -> 5
+    | `F9_ATRA24_panRXR_1 -> 6
+    | `F9_ATRA48_panRXR_1 -> 7
+
+  let pval r x = r.pval.(index x)
+  let intens r x = r.intens.(index x)
+
+end
     
 module L = Labs.Make(B.B)
 open B.B
 
-let regions = L.binding_loci validated_chipseq_samples
-let regions_bed = L.binding_loci_tsv validated_chipseq_samples
+let regions = L.binding_loci conditions
+let regions_bed = L.binding_loci_tsv conditions
 
   
 let pmt_control ~treatment ~control ~treatment_size ~control_size = 
   Pmt.log_poisson_margin control treatment control_size treatment_size
     
-type region = {
-  loc : Location.t ;
-  pval : float array ;
-  intens : float array
-}
+
+open Region
 
 
 let binding_loci_pmt n = 
@@ -47,7 +78,7 @@ let binding_loci_pmt n =
 	 and control_size = `Input_1 --> library_size in
 	 Sle.hfun_make 
 	   (fun x -> -. pmt_control ~treatment:(x --> read_counts).(i) ~control ~treatment_size:(x --> library_size) ~control_size)
-	   validated_chipseq_samples)
+	   conditions)
       regions
   in
   let intensity = 
@@ -55,10 +86,10 @@ let binding_loci_pmt n =
       (fun i _ -> 
 	 Sle.hfun_make 
 	   (fun x -> float (x --> read_counts).(i) /. float (x --> library_size) *. 1e6)
-	   validated_chipseq_samples)
+	   conditions)
       regions 
   in
-  let samples = Array.of_list validated_chipseq_samples in
+  let samples = Array.of_list conditions in
   (0 --^ Array.length regions) 
   |> Enum.map (fun i -> Location.(let l = regions.(i) in
 				  { loc = l ;
