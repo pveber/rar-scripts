@@ -57,53 +57,57 @@ let tracks_of_samples radius samples =
 		    (macs_peaks |- Macs.filter ~pvalue:1e-9 |- Macs.locations_around_summit ~radius |- selection_of_bed) s))
     (Array.of_list samples)
 
-type col es_tsv = {
-  loc : Location ;
-  x : int
-}
 
-let es_peaks path = 
-  Misc.wget 
-    ~gunzip:true
-    ("ftp://ftp.ncbi.nlm.nih.gov/pub/geo/DATA/supplementary/samples/GSM288nnn/" ^ path)
-    Tsv.({has_header = false ; parse = Es_tsv.of_array })
+module Wei_dataset = struct
 
-let nanog_peaks = es_peaks "GSM288345/GSM288345_ES_Nanog.txt.gz"
-let oct4_peaks = es_peaks "GSM288346/GSM288346_ES_Oct4.txt.gz"
-let sox2_peaks = es_peaks "GSM288347/GSM288347_ES_Sox2.txt.gz"
-let smad1_peaks = es_peaks "GSM288348/GSM288348_ES_Smad1.txt.gz"
-let e2f1_peaks = es_peaks "GSM288349/GSM288349_ES_E2f1.txt.gz"
-let tcfcp2l1_peaks = es_peaks "GSM288350/GSM288350_ES_Tcfcp2l1.txt.gz"
-let zfx_peaks = es_peaks "GSM288352/GSM288352_ES_Zfx.txt.gz"
-let stat3_peaks = es_peaks "GSM288353/GSM288353_ES_Stat3.txt.gz"
-let klf4_peaks = es_peaks "GSM288354/GSM288354_ES_Klf4.txt.gz"
-let c_myc_peaks = es_peaks "GSM288356/GSM288356_ES_c-Myc.txt.gz"
-let n_myc_peaks = es_peaks "GSM288357/GSM288357_ES_n-Myc.txt.gz"
-let p300_peaks = es_peaks "GSM288359/GSM288359_ES_p300.txt.gz"
-let suz12_peaks = es_peaks "GSM288360/GSM288360_ES_Suz12.txt.gz"
+  type col tsv_format = {
+    loc : Location ;
+    x : int
+  }
+
+  let peaks path = 
+    Misc.wget 
+      ~gunzip:true
+      ("ftp://ftp.ncbi.nlm.nih.gov/pub/geo/DATA/supplementary/samples/GSM288nnn/" ^ path)
+      Tsv.({has_header = false ; parse = Tsv_format.of_array })
+
+  let nanog_peaks = peaks "GSM288345/GSM288345_ES_Nanog.txt.gz"
+  let oct4_peaks = peaks "GSM288346/GSM288346_ES_Oct4.txt.gz"
+  let sox2_peaks = peaks "GSM288347/GSM288347_ES_Sox2.txt.gz"
+  let smad1_peaks = peaks "GSM288348/GSM288348_ES_Smad1.txt.gz"
+  let e2f1_peaks = peaks "GSM288349/GSM288349_ES_E2f1.txt.gz"
+  let tcfcp2l1_peaks = peaks "GSM288350/GSM288350_ES_Tcfcp2l1.txt.gz"
+  let zfx_peaks = peaks "GSM288352/GSM288352_ES_Zfx.txt.gz"
+  let stat3_peaks = peaks "GSM288353/GSM288353_ES_Stat3.txt.gz"
+  let klf4_peaks = peaks "GSM288354/GSM288354_ES_Klf4.txt.gz"
+  let c_myc_peaks = peaks "GSM288356/GSM288356_ES_c-Myc.txt.gz"
+  let n_myc_peaks = peaks "GSM288357/GSM288357_ES_n-Myc.txt.gz"
+  let p300_peaks = peaks "GSM288359/GSM288359_ES_p300.txt.gz"
+  let suz12_peaks = peaks "GSM288360/GSM288360_ES_Suz12.txt.gz"
 
 
-let es_selection n x = 
-  Tsv.enum x 
-  |> Enum.map (fun x -> recenter n x.loc)
-  |> RarGenome.Selection.of_locations
+  let selection n x = 
+    Tsv.enum x 
+    |> Enum.map (fun x -> recenter n x.loc)
+    |> RarGenome.Selection.of_locations
 
-let es_tracks n = [|
-  "Nanog", es_selection n nanog_peaks ;
-  "Oct4", es_selection n oct4_peaks ;
-  "Sox2", es_selection n sox2_peaks ;
-  "Smad1", es_selection n smad1_peaks ;
-  "E2f1", es_selection n e2f1_peaks ;
-  "Tcfcp2l1", es_selection n tcfcp2l1_peaks ;
-  "Zfx", es_selection n zfx_peaks ;
-  "Stat3", es_selection n stat3_peaks ;
-  "Klf4", es_selection n klf4_peaks ;
-  "c-Myc", es_selection n c_myc_peaks ;
-  "n-Myc", es_selection n n_myc_peaks ;
-  "p300", es_selection n p300_peaks ;
-  "Suz12", es_selection n suz12_peaks ;
-|]
-
+  let tracks n = [|
+    "Wei Nanog", selection n nanog_peaks ;
+    "Wei Oct4", selection n oct4_peaks ;
+    "Wei Sox2", selection n sox2_peaks ;
+    "Wei Smad1", selection n smad1_peaks ;
+    "Wei E2f1", selection n e2f1_peaks ;
+    "Wei Tcfcp2l1", selection n tcfcp2l1_peaks ;
+    "Wei Zfx", selection n zfx_peaks ;
+    "Wei Stat3", selection n stat3_peaks ;
+    "Wei Klf4", selection n klf4_peaks ;
+    "Wei c-Myc", selection n c_myc_peaks ;
+    "Wei n-Myc", selection n n_myc_peaks ;
+    "Wei p300", selection n p300_peaks ;
+    "Wei Suz12", selection n suz12_peaks ;
+  |]
+end
+  
 let rar_es url = Target.F.make 
   (object
      method id = sprintf "Chipseq_track_clustering.rar_es[%s]" url
@@ -208,7 +212,7 @@ end
 
 
 let all_tracks n = Array.concat [
-  es_tracks n ;
+  Wei_dataset.tracks n ;
   tracks_of_samples n B.B.Chipseq.samples ;
   rar_es_tracks n ;
   smad2_es_tracks n ;
