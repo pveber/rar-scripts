@@ -30,8 +30,11 @@ let gerard_selected =
     ~id:"Gerard's selection" ~version:"r1"  
     (fun () -> Array.filter gerard_selection all_regions#value)
 
+let control_sequences = 
+  Ucsc.control_sequences `mm9 (Ucsc.fasta_of_bed `mm9 gerard_selected)
 
 let motif_rank bed = 
   let peakseq = Ucsc.fasta_of_bed `mm9 bed in 
-  let ctrlseq = Fasta.enumerate (Ucsc.control_sequences `mm9 peakseq) in
-  Motif_library.rank (Motif_library.of_jaspar_collection Jaspar.core) peakseq ctrlseq
+  let ctrlseq = Fasta.enumerate (Fasta.shuffle peakseq) in
+  Motif_library.rank Selected_motifs.value#value peakseq ctrlseq
+
