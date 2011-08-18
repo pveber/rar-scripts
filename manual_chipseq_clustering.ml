@@ -32,6 +32,11 @@ let gerard_selected =
 
 let control_sequences = 
   Ucsc.control_sequences `mm9 (Ucsc.fasta_of_bed `mm9 gerard_selected)
+  |> Fasta.enumerate
+
+let control_enrichment = 
+  let ctrlctrlseq = Fasta.enumerate (Fasta.shuffle control_sequences) in
+  Motif_library.rank Selected_motifs.value#value control_sequences ctrlctrlseq
 
 let motif_rank bed = 
   let peakseq = Ucsc.fasta_of_bed `mm9 bed in 
