@@ -16,7 +16,7 @@ let jaccard_sim x y = Selection.(
   let xy = float (length (inter x y))
   and x = float (length x)
   and y = float (length y) in
-  xy ** 2. /. (x *. y)
+  xy *.2. /. (x +. y)
 )
 
 let symmatrix_init n f = 
@@ -218,6 +218,22 @@ let all_tracks n = Array.concat [
   smad2_es_tracks n ;
   Schnetz_dataset.tracks n ;
 ]
+
+let save_dist_matrix tracks path = 
+  let rp = R.make () 
+  and dm = dist_matrix tracks
+  and labels = 
+    Array.map
+      (fst |- String.quote)
+      tracks
+    |> Array.to_list
+    |> String.concat "," in
+  R.matrix rp "dm" dm ;
+  R.c rp "d <- as.dist(dm)" ;
+  R.c rp "labels <- c(%s)" labels ;
+  R.c rp "r <- list(dist = d, labels = labels)" ;
+  R.c rp "save(r,file = '%s')" path ;
+  R.close rp
 
 let sample_hclust_plot tracks path = 
   let rp = R.make () 
