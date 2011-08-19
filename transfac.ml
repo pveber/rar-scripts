@@ -68,4 +68,17 @@ let file =
 
 let of_file path = match run file (source path) with
     Ok x -> x
-  | Bad _ -> assert false
+  | _ -> assert false
+
+let motif_library_item_of_entry e =
+  let open Genome.Motif in 
+  let open Oregon.Motif_library in
+  PSSM (
+    PSSM.of_counts (Array.map (Array.map int_of_float) e.mat),
+    e.id
+  )
+
+let motif_library_of_file fn = 
+  of_file fn 
+  |> List.map motif_library_item_of_entry
+  |> Array.of_list

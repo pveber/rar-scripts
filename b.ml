@@ -522,7 +522,7 @@ module M(P : sig end) = struct
 	(Array.enum selected) in
       let peakseq = Ucsc.fasta_of_bed Genome.id bed in 
       let ctrlseq = Fasta.enumerate (Ucsc.control_sequences Genome.id peakseq) in
-      Motif_library.(roc_auc (eval_motif motif peakseq ctrlseq))
+      Motif_library.(roc_auc (eval_motif motif peakseq ctrlseq)#value)
     )
 
   let auc_for_simple_binding_regions () =
