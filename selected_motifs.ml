@@ -72,11 +72,33 @@ let balmer_ern i =
   PSSM (`sequence [ Motif.PSSM.reverse_complement balmer_hexamer ; `gap (i,i) ; balmer_hexamer ],
 	sprintf "ER%d" i)
     
+
+let sox2_oct4_composite_by_eye = 
+  PSSM (`sequence [
+	  `base (-1.,0.2,0.2,0.) ;
+	  `base (0.3,-1.,-1.,0.3) ;
+	  `base (-1.,-1.,-1.,2.) ;
+	  `base (-1.,-1.,-1.,2.) ;
+	  `base (0.05,0.1,0.7,-1.) ;
+	  `base (0.2,-1.,-1.,1.) ;
+	  `base (-0.1,0.1,-0.1,0.1) ;
+	  `base (1.3,0.1,-1.,0.1) ;
+	  `base (-1.,-1.,-1.,2.) ;
+	  `base (-1.,-1.,1.3,0.1) ;
+	  `base (-1.,0.3,0.1,0.1) ;
+	  `base (0.6,-1.,-1.,0.1) ;
+	  `base (0.4,-1.,0.1,0.05) ;
+	  `base (0.6,0.1,-1.,0.1) ;
+	  `base (0.1,0.1,-1.,0.4) ;
+	],
+	"ugly_sox2_oct4")
+
 let value = Target.V.make
   (object
-     method id = "Selected_motif.value"
+     method id = "Selected_motif.value[r1]"
      method deps = []
      method build = Array.concat [
+       [| sox2_oct4_composite_by_eye |];
        Array.init 6 balmer_drn ;
        Array.init 6 balmer_ern ;
        Array.init 6 balmer_irn ;

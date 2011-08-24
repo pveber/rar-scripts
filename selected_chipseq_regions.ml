@@ -103,3 +103,55 @@ let target n = Target.V.make
      method deps = [] ++ regions_bed ++ regions
      method build = binding_loci_pmt n
    end)
+
+let _ = Pmt.prime_cache()
+
+let annotate_with_chipseq_scores bed path = 
+  let validated_chipseq_samples = 
+    [ `F9_ATRA_panRAR_1 ;
+      `F9_WT_panRAR_1 ; `F9_WT_panRXR_1 ; `F9_ATRA24_panRAR_1 ;
+      `F9_ATRA24_panRXR_1 ; `F9_ATRA48_panRAR_1 ; `F9_ATRA48_panRXR_1 ;
+      `F9_ATRA2_panRXR_1 ] in
+  let read_counts =
+    Sle.hfun_make
+      (fun x -> (Ngs_utils.read_counts_of_location_file (Chipseq.bowtie_wodup x) regions_bed)#value)
+      Chipseq.samples in
+  let library_size = Sle.hfun_make (fun x -> (Sam.nbmappings (Chipseq.bowtie_wodup x))#value) Chipseq.samples 
+  in
+  let pmt_control ~treatment ~control ~treatment_size ~control_size = 
+    Pmt.log_poisson_margin control treatment control_size treatment_size 
+  in
+  let regions = Tsv.enum bed |> Enum.map (fun x -> x # loc) |> Array.of_enum 
+  in
+  let profiles_against_input = 
+    Array.mapi
+      (fun i _ -> 
+	 let control = (`Input_1 --> read_counts).(i)
+	 and control_size = `Input_1 --> library_size in
+	 Sle.hfun_make 
+	   (fun x -> -. pmt_control ~treatment:(x --> read_counts).(i) ~control ~treatment_size:(x --> library_size) ~control_size)
+	   validated_chipseq_samples)
+      regions
+  in
+  let intensity = 
+    Array.mapi
+      (fun i _ -> 
+	 Sle.hfun_make 
+	   (fun x -> float (x --> read_counts).(i) /. float (x --> library_size) *. 1e6)
+	   validated_chipseq_samples)
+      regions
+  in
+  let samples = Array.of_list validated_chipseq_samples in
+  (0 --^ Array.length regions) 
+  |> Enum.map (fun i -> Location.(let l = regions.(i) in
+				  Array.concat [
+				    [| l.chr ; string_of_int l.st ; string_of_int l.ed |] ;
+				    Array.map (fun x -> sprintf "%g" (x --> profiles_against_input.(i))) samples ;
+				    Array.map (fun x -> sprintf "%g" (x --> intensity.(i))) samples ]))
+  |> Enum.append (Enum.singleton (
+		    Array.concat [
+		      [| "chr" ; "start" ; "end" |] ;
+		      Array.map (fun x -> (Chipseq.string_of_sample x) ^ " pval") samples ;
+		      Array.map (fun x -> (Chipseq.string_of_sample x) ^ " intens") samples ] ))
+  |> Enum.map Tsv.string_of_line
+  |> File.write_lines path

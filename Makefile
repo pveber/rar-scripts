@@ -3,8 +3,8 @@ OCB=ocamlbuild -classic-display -cflags -I,+oregon -lflags -I,+oregon,sle.cmo,ge
 top:
 	$(OCB) rar.top
 
-%.byte:
-	$(OCB) $@
+%.byte: %.ml
+	$(OCB) -tag debug $@
 
 clean:
 	$(OCB) -clean

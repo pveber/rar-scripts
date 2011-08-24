@@ -209,7 +209,15 @@ module Schnetz_dataset = struct
 
 end
 
+let encode_tsv_parser l = 
+  Location.make l.(1) (int_of_string l.(2)) (int_of_string l.(3))
 
+let p300_encode_tsv =
+  Target.F.input "manual/chipseq/peaks/p300_encode.tsv" Tsv.({ has_header = false ; parse = encode_tsv_parser })
+
+let p300_encode n = 
+  ("p300 ENCODE",
+   rar_es_selection n p300_encode_tsv)
 
 let all_tracks n = Array.concat [
   Wei_dataset.tracks n ;
@@ -217,6 +225,7 @@ let all_tracks n = Array.concat [
   rar_es_tracks n ;
   smad2_es_tracks n ;
   Schnetz_dataset.tracks n ;
+  [| p300_encode n |]
 ]
 
 let save_dist_matrix tracks path = 
@@ -250,3 +259,16 @@ let sample_hclust_plot tracks path =
   R.c rp "plot(hclust(d),labels=c(%s))" labels ;
   R.devoff rp ;
   R.close rp
+
+
+(* works for Location.t Tsv.file *)
+let bed_of_dataset x = Target.F.make
+  (object
+     method id = "Chipseq_track_clustering.bed_of_dataset[r1]"
+     method deps = [] ++ x
+     method build path = Tsv.enum x
+       |> Enum.map (Bed.unparser |- Tsv.string_of_line)
+       |> File.write_lines path
+     method ty = Tsv.({ has_header = false ; parse = new Bed.base_parser })
+   end)
+  

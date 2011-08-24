@@ -11,7 +11,7 @@ let all_regions = Selected_chipseq_regions.target peak_radius
 
 let gerard_selection x = 
   List.exists 
-    (fun (rar,rxr) -> pval x rar > 6. && pval x rxr > 5.) 
+    (fun (rar,rxr) -> pval x rar > 7. && pval x rxr > 6.) 
     Selected_chipseq_regions.paired_conditions
 
 let bed_of_cluster ~id ~version f = Target.F.make 
@@ -27,7 +27,7 @@ let bed_of_cluster ~id ~version f = Target.F.make
 
 let gerard_selected = 
   bed_of_cluster 
-    ~id:"Gerard's selection" ~version:"r1"  
+    ~id:"Gerard's selection" ~version:"r2"  
     (fun () -> Array.filter gerard_selection all_regions#value)
 
 type profile = int list * bool list
@@ -54,6 +54,19 @@ let profile_of_region r =
 
 let simple_profile r = 
   List.map (fun (c1, c2) -> compare (intens r c1) (intens r c2)) (List.take 3 comparison_pairs)
+
+
+
+let state r x = 
+  pval r x > 6.
+
+let state_profile r = [| 
+  state r `F9_WT_panRAR_1 ;
+  state r `F9_ATRA_panRAR_1 ;
+  state r `F9_ATRA24_panRAR_1 ;
+  state r `F9_ATRA48_panRAR_1 
+|]
+  
   
 let distribute profile = 
   let regions = Array.filter gerard_selection all_regions#value in
@@ -67,9 +80,9 @@ let distribute profile =
     ~cmp:(fun (_,x) (_,y) -> compare (List.length y) (List.length x))
     (List.of_enum (Accu.enum accu))
 
-let cluster_bed n = 
+let cluster_bed f tag n = 
   bed_of_cluster
-    ~id:(sprintf "Distribute algorithm[%d]" n) ~version:"r2"
+    ~id:(sprintf "Distribute algorithm[%d]" n) ~version:tag
     (fun () -> snd (List.nth (distribute simple_profile) n) |> Array.of_list)
 
 
@@ -86,3 +99,16 @@ let motif_rank bed =
   let ctrlseq = Fasta.enumerate (Fasta.shuffle peakseq) in
   Motif_library.rank Selected_motifs.value#value peakseq ctrlseq
 
+let jaspar_motif_rank bed = 
+  let peakseq = Ucsc.fasta_of_bed `mm9 bed in 
+  let ctrlseq = Fasta.enumerate (Fasta.shuffle peakseq) in
+  Motif_library.(rank (of_jaspar_collection Jaspar.core) peakseq ctrlseq)
+
+
+let meme bed = 
+  let peakseq = Ucsc.fasta_of_bed `mm9 bed in 
+  let ctrlseq = Fasta.enumerate (Fasta.shuffle peakseq) in
+  let prior = MemeSuite.psp_gen ~revcomp:true peakseq ctrlseq in
+  MemeSuite.meme ~minw:6 ~maxw:20 ~nmotifs:10 ~revcomp:true ~mode:`zoops ~psp:prior peakseq
+
+  
