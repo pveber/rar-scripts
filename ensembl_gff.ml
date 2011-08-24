@@ -1,7 +1,7 @@
 open Batteries
-module Gff = Biocaml.Gff
 (* open Guizmin *)
 open Genome
+open Oregon
 
 (*
 type item = Exon of string * int
@@ -10,22 +10,44 @@ type annotation = item Biocaml.Genome.Annotation.t
 let annotation = assert false
 *)
 
-let stranded_location_of_row row = Gff.(
-  Location.make row.chr (fst row.pos) (snd row.pos),
+let stranded_location_of_row row = Gtf.(
+  row.loc,
   match row.strand with
-    | Sense -> `Sense
-    | Antisense -> `Antisense
-    | _ -> raise (Invalid_argument "Ensembl.stranded_location_of_row")
+    | Some `plus -> `Sense
+    | Some `minus -> `Antisense
+    | _ -> raise (Invalid_argument "Ensembl_gff.stranded_location_of_row")
 )
 
-let promoters ?(up = 1000) ?(down = 0) path = Gff.(
-  List.enum (to_list (of_file ~version:2 path))
+let promoters ?(up = 1000) ?(down = 0) gff = Gtf.(Tsv.enum gff
   |> Enum.filter 
-      (fun row -> try row.feature = "exon" 
-		  && get_attribute row "exon_number" <> "1" with _ -> failwith (row_to_string row))
+      (fun row -> row.kind = `exon && List.assoc "exon_number" row.attr <> "1")
   |> Enum.map stranded_location_of_row
   |> Enum.map (fun (loc,strand) -> RarGenome.location_upstream ~up ~down strand loc)
+  |> RarGenome.Selection.of_locations
 )
+
+let exons gff = Gtf.(Tsv.enum gff
+  |> Enum.filter_map (fun row -> if row.kind = `exon then Some row.loc else None)
+  |> RarGenome.Selection.of_locations
+)
+
+let intragenic gff = Gtf.(
+  let merge l1 l2 = Location.(
+    make l1.chr (min l1.st l2.st) (max l1.ed l2.ed)
+  ) in
+  Tsv.enum gff 
+  |> Enum.filter (fun row -> row.kind = `exon)
+  |> Enum.group (fun row -> List.assoc "transcript_id" row.attr)
+  |> Enum.map (Enum.map (fun row -> row.loc))
+  |> Enum.map (Enum.reduce merge)
+  |> RarGenome.Selection.of_locations
+)
+
+let introns gff = 
+  RarGenome.Selection.diff 
+    (intragenic gff)
+    (exons gff)
+
 
 (*
 module Guizmin_plugin = struct

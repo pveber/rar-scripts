@@ -76,9 +76,9 @@ end
 let location_upstream ~up ~down strand loc = Location.(
   match strand with
     | `Sense ->  
-	make loc.chr (loc.st - up + 1) (loc.st + down)
+	make loc.chr (max 0 (loc.st - up + 1)) (max 0 (loc.st + down))
     | `Antisense -> 
-	make loc.chr (loc.ed - down + 1) (loc.ed + up)
+	make loc.chr (max 0 (loc.ed - down + 1)) (max 0 (loc.ed + up))
 )
 
 module Selection = struct
@@ -97,6 +97,17 @@ module Selection = struct
 	   let set_v = PMap.find k v in
 	   PMap.add k (ISet.inter set_u set_v) accu
 	 with Not_found -> accu)
+      u PMap.empty
+
+  let diff u v =
+    PMap.foldi
+      (fun k set_u accu ->
+	 let set_u' = 
+	   try 
+	     let set_v = PMap.find k v in
+	     ISet.diff set_u set_v
+	   with Not_found -> set_u
+	 in PMap.add k set_u' accu)
       u PMap.empty
 
   let length x = 
