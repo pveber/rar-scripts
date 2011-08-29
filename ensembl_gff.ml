@@ -51,10 +51,10 @@ let introns gff =
 
 let selection_target gff = Target.V.make
   (object
-     method id = "Ensembl_gff.selection_target"
+     method id = "Ensembl_gff.selection_target[r1]"
      method deps = [] ++ gff
      method build =
-       (promoters ~up:2500 gff,
+       (promoters ~up:1000 gff,
 	exons gff,
 	introns gff,
 	intragenic gff)

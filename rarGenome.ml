@@ -113,6 +113,17 @@ module Selection = struct
 
   let length x = 
     M.fold (fun _ set accu -> ISet.cardinal set + accu) x 0
+
+  let qinclusion sel loc = Location.(ISet.(
+    try 
+      let k = 
+	inter
+	  (add_range loc.st loc.ed empty)
+	  (M.find loc.chr sel)
+        |> cardinal in
+      float k /. float (loc.ed - loc.st + 1)
+    with Not_found -> 0.
+  ))
 end
 
 

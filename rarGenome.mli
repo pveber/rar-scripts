@@ -47,5 +47,6 @@ module Selection : sig
   val inter : t -> t -> t
   val diff : t -> t -> t
   val length : t -> int
+  val qinclusion : t -> Location.t -> float
 end
 
