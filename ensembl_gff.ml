@@ -2,6 +2,7 @@ open Batteries
 (* open Guizmin *)
 open Genome
 open Oregon
+open Target.Infix
 
 (*
 type item = Exon of string * int
@@ -48,7 +49,16 @@ let introns gff =
     (intragenic gff)
     (exons gff)
 
-
+let selection_target gff = Target.V.make
+  (object
+     method id = "Ensembl_gff.selection_target"
+     method deps = [] ++ gff
+     method build =
+       (promoters ~up:2500 gff,
+	exons gff,
+	introns gff,
+	intragenic gff)
+   end)
 (*
 module Guizmin_plugin = struct
   type gff 

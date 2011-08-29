@@ -82,36 +82,37 @@ let location_upstream ~up ~down strand loc = Location.(
 )
 
 module Selection = struct
-  type t = (string, ISet.t) PMap.t
+  module M = Map.StringMap
+  type t = ISet.t M.t
 
   let of_locations e = Location.(
     let accu = Accu.create ISet.empty (fun loc -> ISet.add_range loc.st loc.ed) in
     Enum.iter (fun loc -> Accu.add accu loc.chr loc) e ;
-    PMap.of_enum (Accu.enum accu)
+    M.of_enum (Accu.enum accu)
   )
 
   let inter u v =
-    PMap.foldi
+    M.fold
       (fun k set_u accu ->
 	 try 
-	   let set_v = PMap.find k v in
-	   PMap.add k (ISet.inter set_u set_v) accu
+	   let set_v = M.find k v in
+	   M.add k (ISet.inter set_u set_v) accu
 	 with Not_found -> accu)
-      u PMap.empty
+      u M.empty
 
   let diff u v =
-    PMap.foldi
+    M.fold
       (fun k set_u accu ->
 	 let set_u' = 
 	   try 
-	     let set_v = PMap.find k v in
+	     let set_v = M.find k v in
 	     ISet.diff set_u set_v
 	   with Not_found -> set_u
-	 in PMap.add k set_u' accu)
-      u PMap.empty
+	 in M.add k set_u' accu)
+      u M.empty
 
   let length x = 
-    PMap.fold (fun set accu -> ISet.cardinal set + accu) x 0
+    M.fold (fun _ set accu -> ISet.cardinal set + accu) x 0
 end
 
 
