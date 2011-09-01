@@ -21,7 +21,7 @@ let stranded_location_of_row row = Gtf.(
 
 let promoters ?(up = 1000) ?(down = 0) gff = Gtf.(Tsv.enum gff
   |> Enum.filter 
-      (fun row -> row.kind = `exon && List.assoc "exon_number" row.attr <> "1")
+      (fun row -> row.kind = `exon && List.assoc "exon_number" row.attr = "1")
   |> Enum.map stranded_location_of_row
   |> Enum.map (fun (loc,strand) -> RarGenome.location_upstream ~up ~down strand loc)
   |> RarGenome.Selection.of_locations
@@ -51,7 +51,7 @@ let introns gff =
 
 let selection_target gff = Target.V.make
   (object
-     method id = "Ensembl_gff.selection_target[r1]"
+     method id = "Ensembl_gff.selection_target[r3]"
      method deps = [] ++ gff
      method build =
        (promoters ~up:1000 gff,
