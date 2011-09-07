@@ -2,6 +2,7 @@ open Batteries
 open Printf
 open Genome
 open Oregon
+open Sle.Infix
 
 module Make(P : sig end) = struct
   type annotation = { 
@@ -121,6 +122,47 @@ module Make(P : sig end) = struct
 
 
 
+  (*************************** neighboring genes ************************************)
+  module Neighboring_genes_internals = struct
+    let tss_map = lazy (
+      let tss_of_gene = Ucsc.promoter_of_gene `mm9 ~upstream:0 ~downstream:0 in
+      let transcripts = Tsv.enum (Ucsc.ensGene `mm9) |> Array.of_enum in
+      let t2g = Sle.hrel_of_enum (fun g -> g#transcript, g#gene) (Tsv.enum (Ucsc.ensGtp `mm9)) in
+      let tss = Array.map (fun t -> tss_of_gene t, List.hd (t#name --> t2g)) transcripts in 
+      Chr_map.of_array tss
+    )
+
+    let filter_already_seen f a =
+      let accu = ref PSet.empty in
+      ((Array.enum a) // (fun x ->
+			    let y = f x in 
+			    let b = PSet.mem y accu.contents in
+			    accu := PSet.add y accu.contents ; not b)) |>
+      Array.of_enum
+			   
+
+
+    let k_closest_genes k locs = 
+      let r = filter_already_seen (fun (_,g,_) -> g) locs in 
+      if Array.length r >= k then Some (Array.sub r 0 k) else None
+
+    let kth_closest_gene k loc =
+      (Chr_map.closest_regions (k_closest_genes k) loc !tss_map).(k - 1)
+  end
+
+  let kth_closest_tss_gene k = {
+    label = sprintf "Gene with closest TSS #%d" k ;
+    f = (fun loc -> Neighboring_genes_internals.(
+	   try Tuple3.second (kth_closest_gene k loc)
+	   with Not_found -> "--"))
+  }
+
+  let kth_closest_tss_gene_distance k = {
+    label = sprintf "Distance of gene with closest TSS #%d" k ;
+    f = (fun loc -> Neighboring_genes_internals.(
+	   try Location.position ~from:loc (Tuple3.first (kth_closest_gene k loc)) |> string_of_int
+	   with Not_found -> "--"))
+  }
 
 
 
@@ -140,6 +182,7 @@ module Make(P : sig end) = struct
     Array.map coverage validated_chipseq_samples ;
     Array.map rpkm validated_chipseq_samples ;
     Array.map (fun (x,y) -> pvalue x y) comparison_pairs ;
+    Array.concat (List.init 4 (fun i -> [| kth_closest_tss_gene (i + 1) ; kth_closest_tss_gene_distance (i + 1) |])) ;
   ]
       
 end
