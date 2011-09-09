@@ -105,3 +105,9 @@ let value = Target.V.make
        [| balmer_dr125 ; balmer_dr0125 |]
      ]
    end)
+
+let drerir = Array.concat [
+  Array.init 10 balmer_drn ;
+  Array.init 10 balmer_ern ;
+  Array.init 10 balmer_irn ;
+]

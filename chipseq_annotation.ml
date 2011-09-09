@@ -1,8 +1,20 @@
 open Batteries
 open Printf
+open Scanf
 open Genome
 open Oregon
 open Sle.Infix
+open Target.Infix
+
+let all_regions () = 
+  (Manual_chipseq_clustering.all_regions#value |> Array.enum) 
+  /@ (fun x -> x.Selected_chipseq_regions.Region.loc)
+
+
+let gerard_regions () = 
+  (Tsv.enum Manual_chipseq_clustering.gerard_selected) 
+  /@ fun x -> x#loc
+
 
 module Make(P : sig end) = struct
   type annotation = { 
@@ -166,6 +178,75 @@ module Make(P : sig end) = struct
 
 
 
+
+
+
+
+
+
+
+
+  (*************************** mapability ************************************)
+  module Mapability = struct
+    let wig_parser = Tsv.({
+      has_header = true ;
+      parse = (fun l ->
+		 Location.make l.(0) (int_of_string l.(1)) (int_of_string l.(2)),
+		 float_of_string l.(3))
+    })
+
+    let wig36 = Target.F.input "manual/mapability/mm9/crgMapabilityAlign36mer.light.wig" wig_parser
+
+    let track_of_wig wig = Target.V.make 
+      (object
+	 method id = "Chipseq_annotation.Mapability.track_of_wig[r1]"
+	 method deps = [] ++ wig
+	 method build = 
+	   Tsv.enum wig36
+	   |> Enum.filter_map (fun (loc, x) -> if x > 0.99 then Some loc else None)
+	   |> RarGenome.Selection.of_locations
+       end)
+
+    let track36 = lazy (track_of_wig wig36)#value
+
+    let track36_annotation = {
+      label = "Mapability 36mer" ;
+      f = (fun loc -> 
+	     sprintf "%.2f" (RarGenome.Selection.qinclusion !track36 loc))
+    }
+  end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
   let tsv_output annotations locz fn = Enum.(locz
     |> map (fun loc ->
 	      Array.map (fun x -> x.f loc) annotations)
@@ -183,6 +264,106 @@ module Make(P : sig end) = struct
     Array.map rpkm validated_chipseq_samples ;
     Array.map (fun (x,y) -> pvalue x y) comparison_pairs ;
     Array.concat (List.init 4 (fun i -> [| kth_closest_tss_gene (i + 1) ; kth_closest_tss_gene_distance (i + 1) |])) ;
+    Mapability.([| track36_annotation |])
   ]
       
 end
+
+
+
+(*************************** motifs ************************************)
+module Motif_table = struct
+  let all_regions_fa = 
+    let path = "manual/chipseq/regions/all_regions.bed" in
+    (all_regions ()) /@ Bed.unparser /@ Tsv.string_of_line |> File.write_lines path ;	(* UGLY ! *)		
+    let bed = Target.F.input path Tsv.({ has_header = false ; parse = new Bed.base_parser }) in 
+    Ucsc.fasta_of_bed `mm9 bed
+
+  let format_res l = 
+    List.sort ~cmp:(fun (_,_,x,_) (_,_,y,_) -> Pervasives.compare y x) l
+    |> List.take 5
+    |> List.map (fun (st,ed,x,pv) -> [| string_of_int st ; string_of_int ed ; string_of_int x ; string_of_float pv |])
+    |> Array.concat 
+    |> Tsv.string_of_line
+
+  let tsv_output item fa fn =
+    let r = (B.B.TFBS.wapam_fasta_search 1e-2 item fa)#value in
+    Array.enum r
+    /@ format_res
+    |> File.write_lines fn
+
+  let for_selected_motifs locz prefix = 
+    Array.iter 
+      (fun item -> tsv_output item locz (sprintf "%s-%s.bed" prefix (Motif_library.string_of_item item)))
+      Selected_motifs.drerir
+      
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  (*************************** conservation ************************************)
+  module Conservation = struct
+    let digit = function
+	'0'..'9' -> true
+      | _ -> false
+
+    let conservation_score loc = 
+      (Sle.shout "cd manual/conservation/mm9 && hgWiggle -position=%s -db=mm9 phastCons30wayPlacental" (Location.to_string loc)
+      |> Array.enum)
+      // (fun s -> String.length s > 0 && digit s.[0])
+      /@ ((fun x -> String.split x "\t") |- snd |- float_of_string)
+      |> (Enum.fold ( +. ) 0.)
+      
+
+    let hgWiggle_samechr u v = 
+      not (String.length u > 0 && digit u.[0] && String.length v > 0 && not (digit v.[0]))
+
+    let hgWiggle_output e = 
+      (e // (fun s -> String.length s = 0 || s.[0] <> '#')
+      |> Enum.group_by hgWiggle_samechr)
+      /@ (fun e -> 
+	    let first = Option.get (Enum.get e) in
+	    let chr = sscanf first "variableStep chrom=%s" Std.identity in
+	    chr, Enum.map ((fun x -> String.split x "\t") |- Tuple2.mapn int_of_string float_of_string) e |> List.of_enum)
+      |> Enum.fold (fun accu (chr,posz) -> PMap.add chr posz accu) PMap.empty
+	  
+
+
+    let conservation_scores locz = 
+      Sle.with_tmp (fun fn -> 
+		      locz /@ (Bed.unparser |- Tsv.string_of_line) |> (File.write_lines fn) ;
+		      Sle.shout "cd manual/conservation/mm9 && hgWiggle -bedFile=%s -db=mm9 phastCons30wayPlacental" fn
+		    |> Array.enum
+		    |> hgWiggle_output)
+	
+    let annotation locz fn = 
+      let data = conservation_scores (Enum.clone locz) in
+      Enum.map 
+	(fun loc -> Location.(
+	   (try PMap.find loc.chr data |> List.enum with Not_found -> Enum.empty ()) 
+	   //@ (fun (i, x) -> if i >= loc.st && i <= loc.ed then Some x else None)
+	   |> Enum.fold ( +. ) 0. ))
+	(Enum.clone locz)
+      |> (fun x -> Enum.combine (locz, x))
+      |> Enum.map (fun (loc,x) -> Array.append (Bed.unparser loc) [| string_of_float x |])
+      |> Enum.map Tsv.string_of_line
+      |> File.write_lines fn
+
+  end
