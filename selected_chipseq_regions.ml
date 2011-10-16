@@ -5,6 +5,15 @@ open Sle.Infix
 open Printf
 open Target.Infix
 
+(*
+stupid
+
+> sum((d$F9.WT.panRAR.1.input.1..pval. <= -7. & d$F9.WT.panRXR.1.input.1..pval. <= -7.) | (d$F9.ATRA.panRAR.1.input.1..pval. <= -7. & d$F9.ATRA2.panRXR.1.input.1..pval. <= -7) | (d$F9.ATRA24.panRAR.1.input.1..pval. <= -7 & d$F9.ATRA24.panRXR.1.input.1..pval. <= -7) | (d$F9.ATRA48.panRAR.1.input.1..pval. <= -7. & d$F9.ATRA48.panRX)
+d$F9.ATRA48.panRXR.1.input.1..pval.  d$F9.ATRA48.panRXR.1...reads.        d$F9.ATRA48.panRXR.1..RPKM.
+> sum((d$F9.WT.panRAR.1.input.1..pval. <= -7. & d$F9.WT.panRXR.1.input.1..pval. <= -7.) | (d$F9.ATRA.panRAR.1.input.1..pval. <= -7. & d$F9.ATRA2.panRXR.1.input.1..pval. <= -7) | (d$F9.ATRA24.panRAR.1.input.1..pval. <= -7 & d$F9.ATRA24.panRXR.1.input.1..pval. <= -7) | (d$F9.ATRA48.panRAR.1.input.1..pval. <= -7. & d$F9.ATRA48.panRXR.1.input.1..pval. <= -7))
+
+*)
+
 let conditions = [ 
   `F9_WT_panRAR_1 ; 
   `F9_ATRA_panRAR_1 ;

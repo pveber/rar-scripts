@@ -1,7 +1,6 @@
 open Batteries
 open Genome
 open Oregon
-open Target.Infix
 open Motif_library
 open Printf
 
@@ -52,6 +51,10 @@ let balmer_dr0_n i =
 let balmer_dtr0_n i =
   PSSM (`sequence [ balmer_hexamer ; `gap (0,i) ; balmer_hexamer ; `gap (0,i) ; balmer_hexamer ],
 	sprintf "BalmerDTR0-%d" i)
+
+let balmer_dtrn i j =
+  PSSM (`sequence [ balmer_hexamer ; `gap (i,i) ; balmer_hexamer ; `gap (j,j) ; balmer_hexamer ],
+	sprintf "BalmerDTR(%d,%d)" i j)
 
 let composite_trn i =
   PSSM (`disjunction [
@@ -111,3 +114,13 @@ let drerir = Array.concat [
   Array.init 10 balmer_ern ;
   Array.init 10 balmer_irn ;
 ]
+
+let trimer = 
+  let a = Array.init 10 identity  in
+  Array.map
+    (fun (i,j) -> balmer_dtrn i j)
+    (Sle.SleArray.product a a)
+
+let jaspar_tandems () = Motif_library.(
+  motif_tandems ~mingap:0 ~maxgap:200 balmer_dr0125 (of_jaspar_collection Jaspar.core)
+)

@@ -11,7 +11,7 @@ let all_regions = Selected_chipseq_regions.target peak_radius
 
 let gerard_selection x = 
   List.exists 
-    (fun (rar,rxr) -> pval x rar > 7. && pval x rxr > 6.) 
+    (fun (rar,rxr) -> pval x rar >= 7. && pval x rxr >= 7.) 
     Selected_chipseq_regions.paired_conditions
 
 let bed_of_cluster ~id ~version f = Target.F.make 
@@ -27,7 +27,7 @@ let bed_of_cluster ~id ~version f = Target.F.make
 
 let gerard_selected = 
   bed_of_cluster 
-    ~id:"Gerard's selection" ~version:"r2"  
+    ~id:"Gerard's selection" ~version:"r4"  
     (fun () -> Array.filter gerard_selection all_regions#value)
 
 type profile = int list * bool list

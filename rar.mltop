@@ -2,8 +2,11 @@ Accu
 B
 Chipseq_annotation
 Chipseq_centered_enrichment
+Chipseq_regions
+Chipseq_roc_stuff
 Chipseq_track_clustering
 Ensembl_gff
+Gene_annotation
 Justin_chipseq_clustering
 Manual_chipseq_clustering
 Motif_screening
