@@ -42,14 +42,16 @@ module Setting = struct
 		    (`atra 24, `riboM) ; 
 		    (`atra 36, `riboM) ; 
 		    (`atra 48, `riboM) ; *)
-		    (`t0,      `polyA) ; 
-		    (`atra 6,  `polyA) ; 
-		    (`atra 12, `polyA) ; 
-		    (`atra 24, `polyA) ; 
+
+		    (`t0,      `polyA) ;
+		    (`atra 6,  `polyA) ;
+		    (`atra 12, `polyA) ;
+		    (`atra 24, `polyA) ;
 		    (`atra 36, `polyA) ;
 		    (`atra 48, `polyA) ;
-		    (`dmso 24, `polyA) ; 
-		    (`dmso 48, `polyA) ]
+		    (`dmso 24, `polyA) ;
+		    (`dmso 48, `polyA)
+    ]
 
     let read_length _ = 72
 
@@ -149,6 +151,17 @@ module Setting = struct
       | `F9_ATRA2_PolII_1
       | `F9_ATRA24_PolII_1
       | `F9_ATRA48_PolII_1
+      | `Mendoza_input
+      | `Mendoza_ATRA2_RARg
+      | `Mendoza_ATRA6_RARg
+      | `Mendoza_ATRA24_RARg
+      | `Mendoza_ATRA48_RARg
+      | `Mendoza_EtOH48_RARg
+      | `Mendoza_ATRA2_RXRa
+      | `Mendoza_ATRA6_RXRa
+      | `Mendoza_ATRA24_RXRa
+      | `Mendoza_ATRA48_RXRa
+      | `Mendoza_EtOH48_RXRa
     ]
     type condition = condition_type
 
@@ -167,13 +180,28 @@ module Setting = struct
       | `F9_ATRA2_PolII_1 -> "F9-ATRA2-PolII-1"
       | `F9_ATRA24_PolII_1 -> "F9-ATRA24-PolII-1"
       | `F9_ATRA48_PolII_1 -> "F9-ATRA48-PolII-1"
+      | `Mendoza_input -> "Mendoza-WCE"
+      | `Mendoza_ATRA2_RARg -> "Mendoza-ATRA2-RARg"
+      | `Mendoza_ATRA6_RARg -> "Mendoza-ATRA6-RARg"
+      | `Mendoza_ATRA24_RARg -> "Mendoza-ATRA24-RARg"
+      | `Mendoza_ATRA48_RARg -> "Mendoza-ATRA48-RARg"
+      | `Mendoza_EtOH48_RARg -> "Mendoza-EtOH48-RARg"
+      | `Mendoza_ATRA2_RXRa -> "Mendoza-ATRA2-RXRa"
+      | `Mendoza_ATRA6_RXRa -> "Mendoza-ATRA6-RXRa"
+      | `Mendoza_ATRA24_RXRa -> "Mendoza-ATRA24-RXRa"
+      | `Mendoza_ATRA48_RXRa -> "Mendoza-ATRA48-RXRa"
+      | `Mendoza_EtOH48_RXRa -> "Mendoza-EtOH48-RXRa"
 
 
     let samples = [ `F9_ATRA_panRAR_1 ; `F9_ATRA_panRAR_2 ; `Input_1 ;       
 		    `F9_WT_panRAR_1 ; `F9_WT_panRXR_1 ; `F9_ATRA24_panRAR_1 ;
 		    `F9_ATRA24_panRXR_1 ; `F9_ATRA48_panRAR_1 ; `F9_ATRA48_panRXR_1 ;
 		    `F9_ATRA2_panRXR_1 ; `F9_WT_PolII_1 ; `F9_ATRA2_PolII_1 ; 
-		    `F9_ATRA24_PolII_1 ; `F9_ATRA48_PolII_1]
+		    `F9_ATRA24_PolII_1 ; `F9_ATRA48_PolII_1 ;
+		    `Mendoza_input ; `Mendoza_ATRA2_RARg ; `Mendoza_ATRA6_RARg ; 
+		    `Mendoza_ATRA24_RARg ; `Mendoza_ATRA48_RARg ; `Mendoza_EtOH48_RARg ;
+		    `Mendoza_ATRA2_RXRa ; `Mendoza_ATRA6_RXRa ; 
+		    `Mendoza_ATRA24_RXRa ; `Mendoza_ATRA48_RXRa ; `Mendoza_EtOH48_RXRa ]
 
     type channel = sample
 
@@ -194,9 +222,32 @@ module Setting = struct
       | `F9_ATRA2_PolII_1 -> "data-gb/chipseq-20110413/s_4_sequence.txt"
       | `F9_ATRA24_PolII_1 -> "data-gb/chipseq-20110413/s_5_sequence.txt"
       | `F9_ATRA48_PolII_1 -> "data-gb/chipseq-20110413/s_6_sequence.txt"
+      | `Mendoza_input -> "data-mendoza/input.fastq"
+      | `Mendoza_ATRA2_RARg -> "data-mendoza/ATRA2_RARg.fastq"
+      | `Mendoza_ATRA6_RARg -> "data-mendoza/ATRA6_RARg.fastq"
+      | `Mendoza_ATRA24_RARg -> "data-mendoza/ATRA24_RARg.fastq"
+      | `Mendoza_ATRA48_RARg -> "data-mendoza/ATRA48_RARg.fastq"
+      | `Mendoza_EtOH48_RARg -> "data-mendoza/EtOH48_RARg.fastq"
+      | `Mendoza_ATRA2_RXRa -> "data-mendoza/ATRA2_RXRa.fastq"
+      | `Mendoza_ATRA6_RXRa -> "data-mendoza/ATRA6_RXRa.fastq"
+      | `Mendoza_ATRA24_RXRa -> "data-mendoza/ATRA24_RXRa.fastq"
+      | `Mendoza_ATRA48_RXRa -> "data-mendoza/ATRA48_RXRa.fastq"
+      | `Mendoza_EtOH48_RXRa -> "data-mendoza/EtOH48_RXRa.fastq"
 
 
-    let fastq_type _ = `fastq `solexa
+    let fastq_type = function
+      | `Mendoza_input -> `fastq `phred33
+      | `Mendoza_ATRA2_RARg -> `fastq `phred33
+      | `Mendoza_ATRA6_RARg -> `fastq `phred33
+      | `Mendoza_ATRA24_RARg -> `fastq `phred33
+      | `Mendoza_ATRA48_RARg -> `fastq `phred33
+      | `Mendoza_EtOH48_RARg -> `fastq `phred33
+      | `Mendoza_ATRA2_RXRa -> `fastq `phred33
+      | `Mendoza_ATRA6_RXRa -> `fastq `phred33
+      | `Mendoza_ATRA24_RXRa -> `fastq `phred33
+      | `Mendoza_ATRA48_RXRa -> `fastq `phred33
+      | `Mendoza_EtOH48_RXRa -> `fastq `phred33
+      | _ -> `fastq `solexa
 
     let design = [ `F9_ATRA_panRAR_1, `Input_1 ; `F9_ATRA_panRAR_2, `Input_1 ;
 		   `F9_WT_panRAR_1, `Input_1 ; `F9_WT_panRXR_1, `Input_1 ; 
@@ -204,7 +255,13 @@ module Setting = struct
 		   `F9_ATRA48_panRAR_1, `Input_1 ; `F9_ATRA48_panRXR_1, `Input_1 ;
 		   `F9_ATRA2_panRXR_1, `Input_1 ; `F9_WT_PolII_1, `Input_1 ; 
 		   `F9_ATRA2_PolII_1, `Input_1 ; `F9_ATRA24_PolII_1, `Input_1 ; 
-		   `F9_ATRA48_PolII_1, `Input_1 ]
+		   `F9_ATRA48_PolII_1, `Input_1 ;
+		   `Mendoza_ATRA2_RARg, `Mendoza_input ; `Mendoza_ATRA6_RARg, `Mendoza_input ;
+		   `Mendoza_ATRA24_RARg, `Mendoza_input ; `Mendoza_ATRA48_RARg, `Mendoza_input ;
+		   `Mendoza_EtOH48_RARg, `Mendoza_input ;
+		   `Mendoza_ATRA2_RXRa, `Mendoza_input ; `Mendoza_ATRA6_RXRa, `Mendoza_input ;
+		   `Mendoza_ATRA24_RXRa, `Mendoza_input ; `Mendoza_ATRA48_RXRa, `Mendoza_input ;
+		   `Mendoza_EtOH48_RXRa, `Mendoza_input ]
 
     let pretreatment y x = x
 
@@ -302,9 +359,6 @@ let passwd = GzmConfig.export_passwd ()
 let url = sprintf "http://%s:%s@cgmc.univ-lyon1.fr/FGNRseq/%s" login passwd rep
 let host = GzmConfig.host_ssh_url () ^ "/" ^ rep
 let website = B.Output.website ~url ~host;;
-
-(* if not ! Sys.interactive then Website.publish website;; *)
-
 
 open Motif_library
 open Setting.Motif_library
