@@ -78,9 +78,10 @@ let make ~summit ~location peaks =
 	 let l_p = location p in 
 	 Location.(l_p.chr, l_p.st + summit p)) 
       (List.enum peaks) in
-  Enum.fold 
-    (fun accu (chr,summits) -> (islands chr summits) @ accu) 
-    [] (HRel.enum peaks_by_chr)
+  HRel.enum peaks_by_chr
+  /@ (fun (chr,summits) -> islands chr summits |> List.enum)
+  |> Enum.concat
+  |> Array.of_enum
 
 
 
@@ -97,7 +98,7 @@ let of_macs_targets ~radius ?(pvalue = 30.) macs_outputs = V.make
 	 |> List.of_enum
        in
        make ~summit:(fun p -> p#summit) ~location:(fun l -> l#loc) all_peaks
-       |> List.map (fun (chr,i,_,_) -> Location.make chr (i - radius) (i + radius))
+       |> Array.map (fun (chr,i,_,_) -> Location.make chr (i - radius) (i + radius))
    end)
 
   
