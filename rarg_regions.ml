@@ -46,7 +46,7 @@ let gerard_selection =
 	(fun i loc ->
 	  let pval = ann.(i).Chipseq_annotation.pvalue in
 	  List.exists
-	    (fun (rar,rxr) -> pval $ rar >= 6. && pval $ rxr >= 6.)
+	    (fun (rar,rxr) -> pval $ rar >= 3. && pval $ rxr >= 3.)
 	    paired_conditions)
 	all_of_them#value
    end)

@@ -15,7 +15,7 @@ module Infix = struct
         try Hashtbl.find t x 
 	with Not_found -> (
 	  let y = f x in 
-	  Hashtbl.add t x y ;
+	  Hashtbl.replace t x y ;
 	  y
 	)
       end
@@ -35,6 +35,11 @@ let close = function
   | Open (f,t) -> Closed t
   | x -> x
 
+let domain hfun = 
+  BatHashtbl.keys (ht hfun)
+
+let image hfun = 
+  BatHashtbl.values (ht hfun)
 
 let cache f = 
   let hfun = make f in

@@ -6,8 +6,9 @@ open Oregon.Target.Infix
 open HFun.Infix
 
 type 'a annot = {
-  coverage : ('a, int) HFun.t ;
-  rpkm : ('a, float) HFun.t ;
+  loc : Location.t ;
+  counts : ('a, int) HFun.t ;
+  coverage : ('a, float) HFun.t ;
   pvalue : ('a, float) HFun.t
 }
 
@@ -32,18 +33,48 @@ let make design locations =
       let _ = Pmt.prime_cache() in
       let read_maps = HFun.cache (fun x -> (chrmap x)#value) in
       let library_size = HFun.cache (fun x -> (nbmappings x)#value) in
-      let coverage x loc = Chr_map.nbregions_in (read_maps x) loc in
-      let rpkm x loc = 
-	float (coverage x loc) /. float (library_size x) *. 1e6 /. (loc |> Location.length |> float) *. 1000.
+      let counts x loc = Chr_map.nbregions_in (read_maps x) loc in
+      let coverage x loc = 
+	float (counts x loc) /. float (library_size x) *. 1e6 /. (loc |> Location.length |> float) *. 1000.
       and pvalue x y loc =
-	-. pmt_test (coverage x loc) (coverage y loc) (library_size x) (library_size y) in
+	-. pmt_test (counts x loc) (counts y loc) (library_size x) (library_size y) in
       let hfun f = 
 	let init = List.enum design /@ fst 
 	and f x = f x (List.assoc x design) in
 	HFun.(make ~init f |> close) in
       Array.map 
-	(fun loc -> { coverage =  hfun (fun x _ -> coverage x loc) ;
-		      rpkm = hfun (fun x _ -> rpkm x loc) ;
-		      pvalue = hfun (fun x y -> pvalue x y loc) })
+	(fun loc -> { loc      = loc ;
+		      counts   =  hfun (fun x _ -> counts x loc) ;
+		      coverage = hfun (fun x _ -> coverage x loc) ;
+		      pvalue   = hfun (fun x y -> pvalue x y loc) })
 	locations
   end)
+
+let domain annot = match annot with 
+    [| |] -> []
+  | t -> HFun.domain t.(0).counts |> List.of_enum
+  
+let tsv output_path annot = 
+  let domain = domain annot in
+  let fields f hfun = 
+    (List.enum domain) /@ (( $ ) hfun |- f) |> Array.of_enum
+  and labels l = 
+    (List.enum domain) /@ (fun x -> l ^ " " ^ (B.Chipseq.string_of_sample x)) |> Array.of_enum
+  in
+  Array.enum annot
+  /@ Location.(fun a -> Array.concat [
+    [| a.loc.chr ; string_of_int a.loc.st ; string_of_int a.loc.ed |] ;
+    fields string_of_int a.counts ;
+    fields string_of_float a.coverage ;
+    fields string_of_float a.pvalue 
+  ])
+  |> Enum.(append (singleton (
+       Array.concat [
+	 [| "chrom" ; "start" ; "end" |] ;
+	 labels "counts" ;
+	 labels "coverage" ;
+	 labels "pvalue" 
+       ])))
+  |> Enum.map Tsv.string_of_line
+  |> File.write_lines output_path
+
