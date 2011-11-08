@@ -5,6 +5,9 @@ val close : ('a, 'b) t -> ('a, 'b) t
 
 val cache : ('a -> 'b) -> ('a -> 'b)
 
+val domain : ('a,'b) t -> 'a BatEnum.t
+val image  : ('a,'b) t -> 'b BatEnum.t
+
 module Infix : sig
   val ( <-- )  : ('a, 'b) t -> 'a * 'b -> unit
   val ( $ ) : ('a, 'b) t -> 'a -> 'b

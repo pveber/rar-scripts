@@ -3,11 +3,13 @@ open Genome
 open Oregon.Target
 
 type 'a annot = {
-  coverage : ('a, int) HFun.t ;
-  rpkm : ('a, float) HFun.t ;
+  loc : Location.t ;
+  counts : ('a, int) HFun.t ;
+  coverage : ('a, float) HFun.t ;
   pvalue : ('a, float) HFun.t
 }
 
 val make : 
   (B.Chipseq.sample * B.Chipseq.sample) list -> Location.t array value -> B.Chipseq.sample annot array value
 
+val tsv : string -> B.Chipseq.sample annot array -> unit
