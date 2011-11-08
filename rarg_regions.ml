@@ -31,24 +31,24 @@ let all_of_them =
     (List.map B.Chipseq.macs_peaks conditions)
 
 
-(* let gerard_selection =  *)
-(*   let chipseq_annotation =  *)
-(*     Chipseq_annotation.make *)
-(*       (List.map (fun x -> x, `Input_1) conditions) *)
-(*       all_of_them *)
-(*   in V.make  *)
-(*   (object *)
-(*     method id = "RARg_regions.gerard_selection" *)
-(*     method deps = [] ++ chipseq_annotation *)
-(*     method build =  *)
-(*       let ann = chipseq_annotation#value in *)
-(*       Array.filteri *)
-(* 	(fun i loc ->  *)
-(* 	  let pval = ann.(i).Chipseq_annotation.pvalue in *)
-(* 	  List.exists  *)
-(* 	    (fun (rar,rxr) -> pval $ rar >= 7. && pval $ rxr >= 7.) *)
-(* 	    paired_conditions) *)
-(* 	all_of_them#value *)
-(*    end) *)
+let gerard_selection =
+  let chipseq_annotation =
+    Chipseq_annotation.make
+      (List.map (fun x -> x, `Mendoza_input) conditions)
+      all_of_them
+  in V.make
+  (object
+    method id = "RARg_regions.gerard_selection"
+    method deps = [] ++ chipseq_annotation
+    method build =
+      let ann = chipseq_annotation#value in
+      Array.filteri
+	(fun i loc ->
+	  let pval = ann.(i).Chipseq_annotation.pvalue in
+	  List.exists
+	    (fun (rar,rxr) -> pval $ rar >= 6. && pval $ rxr >= 6.)
+	    paired_conditions)
+	all_of_them#value
+   end)
   
 
