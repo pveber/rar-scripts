@@ -25,7 +25,7 @@ let make design locations =
   let chrmap = HFun.cache (bowtie |- Sam.to_chr_map)
   and nbmappings = HFun.cache (bowtie |- Sam.nbmappings) in
   V.make (object
-    method id = "Chipseq_annotation[r1]" 
+    method id = "Chipseq_annotation[r2]" 
     method deps = [] ++ locations ++* (List.map chrmap all_samples) ++* (List.map nbmappings all_samples)
     method build = 
       let locations = locations#value in 
@@ -36,7 +36,7 @@ let make design locations =
       let rpkm x loc = 
 	float (coverage x loc) /. float (library_size x) *. 1e6 /. (loc |> Location.length |> float) *. 1000.
       and pvalue x y loc =
-	pmt_test (coverage x loc) (coverage y loc) (library_size x) (library_size y) in
+	-. pmt_test (coverage x loc) (coverage y loc) (library_size x) (library_size y) in
       let hfun f = 
 	let init = List.enum design /@ fst 
 	and f x = f x (List.assoc x design) in
