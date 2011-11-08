@@ -44,44 +44,15 @@ end
 
 
 
-module HFun = struct
-  type ('a,'b) t = ('a,'b) Hashtbl.t
-
-  module Infix = struct
-    let ( <-- ) f (x, v) = Hashtbl.replace f x v
-	   
-    let ( --> ) x f = Hashtbl.find f x
-  end
-
-  open Infix
-
-  let make f support = 
-    let r = Hashtbl.create (List.length support) in
-    List.iter (fun x -> r <-- (x, f x)) support ;
-    r
-
-  let of_enum f support = 
-    let r = Hashtbl.create 1024 in
-    Enum.iter (fun x -> r <-- (x, f x)) support ;
-    r
-
-  let make2 domain image = 
-    let n = List.length domain 
-    and m = List.length image in
-    let _ = if n <> m then raise (Invalid_argument "hfun_extension") in
-    let r = Hashtbl.create n in
-    List.iter2 (fun x y -> r <-- (x, y)) domain image ;
-    r
-
-  let preimage f support = 
-    let r = Hashtbl.create 251 in
-    Enum.iter (fun x -> r <-- (f x, x)) support ;
-    r
-
-  let compose f hfun = Hashtbl.map (fun _ v -> f v) hfun
-
-  let image hfun = Hashtbl.values hfun
-end
+let cache f = 
+  let t = Hashtbl.create 251 in 
+  fun x -> 
+    try Hashtbl.find t x 
+    with Not_found -> (
+      let y = f x in 
+      Hashtbl.add t x y ;
+      y
+    )
 
 (*
     let ( +++ ) c k =

@@ -27,18 +27,4 @@ end
     val ( +++* ) : 'a histogram -> 'a * int -> unit
 *)
 
-module HFun : sig
-  type ('a,'b) t
-  val make : ('a -> 'b) -> 'a list -> ('a, 'b) t
-  val of_enum : ('a -> 'b) -> 'a Enum.t -> ('a, 'b) t
-  val make2 : 'a list -> 'b list -> ('a, 'b) t
-  val preimage : ('a -> 'b) -> 'a Enum.t -> ('b, 'a) t
-  val compose : ('b -> 'c) -> ('a, 'b) t -> ('a, 'c) t
-  val image : ('a, 'b) t -> 'b Enum.t
-
-  module Infix : sig
-    val ( <-- )  : ('a, 'b) t -> 'a * 'b -> unit
-    val ( --> ) : 'a -> ('a, 'b) t -> 'b
-  end
-end
-
+val cache : ('a -> 'b) -> 'a -> 'b

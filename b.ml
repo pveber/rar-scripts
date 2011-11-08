@@ -367,7 +367,7 @@ let jaspar_tandems motif =
   motif_tandems ~mingap:0 ~maxgap:50 motif (Motif_library.of_jaspar_collection Jaspar.core)
 
 
-open B
+include B
 
 
 
