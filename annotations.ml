@@ -9,7 +9,7 @@ let _ = Chipseq_annotation.(
     "RARg_regions_chipseq_annotation.tsv"
     (make 
        chipseq_design
-       Rarg_regions.gerard_selection#value)
+       Rarg_regions.gerard_selection)#value
 );;
 
 let _ = Chipseq_annotation.(
@@ -17,5 +17,5 @@ let _ = Chipseq_annotation.(
     "PanRAR_regions_chipseq_annotation.tsv"
     (make 
        chipseq_design
-       PanRAR_regions.gerard_selection#value)
+       PanRAR_regions.gerard_selection)#value
 );;
