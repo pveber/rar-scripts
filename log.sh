@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# get conservation data in data/conservation/mm9
+
 # get justin's clusters
 mkdir -p results/chipseq/clustering/justin
 cd results/chipseq/clustering/justin
@@ -13,4 +15,4 @@ echo "get original panRAR regions in panRAR_regions.bed" && exit 0
 
 # produce annotations for chipseq regions
 mkdir -p results/chipseq/annotations/
-
+./rar-scripts/_build/annotations.native
