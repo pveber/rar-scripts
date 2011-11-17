@@ -9,7 +9,7 @@ let chipseq_design =
 
 let original_panRAR_regions = Oregon.(
   Target.F.input 
-    "results/chipseq/regions/panRAR_regions.bed" 
+    "resources/chipseq/regions/original_panRAR_regions.bed" 
     (Bed.basic_ty (assert false))
 )
 
