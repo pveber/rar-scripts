@@ -162,6 +162,8 @@ module Setting = struct
       | `Mendoza_ATRA24_RXRa
       | `Mendoza_ATRA48_RXRa
       | `Mendoza_EtOH48_RXRa
+      | `Mendoza_metaprofile_RARg
+      | `Mendoza_metaprofile_RXRa
     ]
     type condition = condition_type
 
@@ -191,6 +193,8 @@ module Setting = struct
       | `Mendoza_ATRA24_RXRa -> "Mendoza-ATRA24-RXRa"
       | `Mendoza_ATRA48_RXRa -> "Mendoza-ATRA48-RXRa"
       | `Mendoza_EtOH48_RXRa -> "Mendoza-EtOH48-RXRa"
+      | `Mendoza_metaprofile_RARg -> "Mendoza-metaprofile-RARg"
+      | `Mendoza_metaprofile_RXRa -> "Mendoza-metaprofile-RXRa"
 
 
     let samples = [ `F9_ATRA_panRAR_1 ; `F9_ATRA_panRAR_2 ; `Input_1 ;       
@@ -201,11 +205,46 @@ module Setting = struct
 		    `Mendoza_input ; `Mendoza_ATRA2_RARg ; `Mendoza_ATRA6_RARg ; 
 		    `Mendoza_ATRA24_RARg ; `Mendoza_ATRA48_RARg ; `Mendoza_EtOH48_RARg ;
 		    `Mendoza_ATRA2_RXRa ; `Mendoza_ATRA6_RXRa ; 
-		    `Mendoza_ATRA24_RXRa ; `Mendoza_ATRA48_RXRa ; `Mendoza_EtOH48_RXRa ]
+		    `Mendoza_ATRA24_RXRa ; `Mendoza_ATRA48_RXRa ; `Mendoza_EtOH48_RXRa ;
+		    `Mendoza_metaprofile_RARg ; `Mendoza_metaprofile_RXRa ]
 
-    type channel = sample
+    type channel = [
+	`F9_ATRA_panRAR_1
+      | `F9_ATRA_panRAR_2
+      | `Input_1
+      | `F9_WT_panRAR_1
+      | `F9_WT_panRXR_1
+      | `F9_ATRA24_panRAR_1
+      | `F9_ATRA24_panRXR_1
+      | `F9_ATRA48_panRAR_1
+      | `F9_ATRA48_panRXR_1
+      | `F9_ATRA2_panRXR_1
+      | `F9_WT_PolII_1
+      | `F9_ATRA2_PolII_1
+      | `F9_ATRA24_PolII_1
+      | `F9_ATRA48_PolII_1
+      | `Mendoza_input
+      | `Mendoza_ATRA2_RARg
+      | `Mendoza_ATRA6_RARg
+      | `Mendoza_ATRA24_RARg
+      | `Mendoza_ATRA48_RARg
+      | `Mendoza_EtOH48_RARg
+      | `Mendoza_ATRA2_RXRa
+      | `Mendoza_ATRA6_RXRa
+      | `Mendoza_ATRA24_RXRa
+      | `Mendoza_ATRA48_RXRa
+      | `Mendoza_EtOH48_RXRa
+    ]
 
-    let channels x = [ x ]
+
+    let channels = function
+	`Mendoza_metaprofile_RARg -> [ `Mendoza_ATRA2_RARg ; `Mendoza_ATRA6_RARg ; 
+				       `Mendoza_ATRA24_RARg ; `Mendoza_ATRA48_RARg ; 
+				       `Mendoza_EtOH48_RARg ]
+      | `Mendoza_metaprofile_RXRa -> [ `Mendoza_ATRA2_RXRa ; `Mendoza_ATRA6_RXRa ; 
+				       `Mendoza_ATRA24_RXRa ; `Mendoza_ATRA48_RXRa ; 
+				       `Mendoza_EtOH48_RXRa ]
+      | #channel as x -> [ x ]
 
     let path = function
 	`F9_ATRA_panRAR_1 -> "data-gb/chipseq-20100709/s_1_sequence"
@@ -247,6 +286,8 @@ module Setting = struct
       | `Mendoza_ATRA24_RXRa -> `fastq `phred33
       | `Mendoza_ATRA48_RXRa -> `fastq `phred33
       | `Mendoza_EtOH48_RXRa -> `fastq `phred33
+      | `Mendoza_metaprofile_RARg -> `fastq `phred33
+      | `Mendoza_metaprofile_RXRa -> `fastq `phred33
       | _ -> `fastq `solexa
 
     let design = [ `F9_ATRA_panRAR_1, `Input_1 ; `F9_ATRA_panRAR_2, `Input_1 ;
@@ -261,7 +302,9 @@ module Setting = struct
 		   `Mendoza_EtOH48_RARg, `Mendoza_input ;
 		   `Mendoza_ATRA2_RXRa, `Mendoza_input ; `Mendoza_ATRA6_RXRa, `Mendoza_input ;
 		   `Mendoza_ATRA24_RXRa, `Mendoza_input ; `Mendoza_ATRA48_RXRa, `Mendoza_input ;
-		   `Mendoza_EtOH48_RXRa, `Mendoza_input ]
+		   `Mendoza_EtOH48_RXRa, `Mendoza_input ;
+		   `Mendoza_metaprofile_RARg, `Mendoza_input ;
+		   `Mendoza_metaprofile_RXRa, `Mendoza_input ]
 
     let pretreatment y x = x
 

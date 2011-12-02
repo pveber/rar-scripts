@@ -10,7 +10,7 @@ group_color = function(n) {
 }
 
 plot <- function(repr,tf,meth,k) {
-  outputfn <- paste('results/chipseq/justin_clustering',
+  outputfn <- paste('results/chipseq/justin_clustering/heatmaps',
                     repr,
 		    paste('chipseq-',tf,'-',meth,'.',k,'.pdf',sep=''),
 		    sep='/')

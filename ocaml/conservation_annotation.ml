@@ -25,7 +25,7 @@ let hgWiggle_output e =
 let conservation_scores locz = 
   Sle.with_tmp (fun fn -> 
     locz /@ (Bed.unparser |- Tsv.string_of_line) |> (File.write_lines fn) ;
-    Sle.shout "cd data/conservation/mm9 && hgWiggle -bedFile=%s -db=mm9 phastCons30wayPlacental" fn
+    Sle.shout "cd resources/conservation/mm9 && hgWiggle -bedFile=%s -db=mm9 phastCons30wayPlacental" fn
     |> Array.enum
     |> hgWiggle_output)
     

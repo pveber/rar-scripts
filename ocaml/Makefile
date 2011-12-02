@@ -1,7 +1,7 @@
 OCB=ocamlbuild -classic-display -cflags -I,+oregon 
 
 top:
-	$(OCB) rar.top
+	$(OCB) -lflags -I,+oregon,sle.cmo,genome.cmo,oregon.cmo,labs.cmo,gzmConfig.cmo -tag debug rar.top
 
 %.byte: %.ml
 	$(OCB) -lflags -I,+oregon,sle.cmo,genome.cmo,oregon.cmo,labs.cmo,gzmConfig.cmo -tag debug $@
