@@ -1,15 +1,8 @@
 open Batteries
-(* open Guizmin *)
 open Genome
 open Oregon
+open Target
 open Target.Infix
-
-(*
-type item = Exon of string * int
-type annotation = item Biocaml.Genome.Annotation.t
-
-let annotation = assert false
-*)
 
 let stranded_location_of_row row = Gtf.(
   row.loc,
@@ -59,6 +52,49 @@ let selection_target gff = Target.V.make
 	introns gff,
 	intragenic gff)
    end)
+
+let convex_hull_of_transcripts ts =
+  Location.convex_hull
+    (List.map
+       (fun (_,t) -> Location.convex_hull (List.map (fun x -> x.Gtf.loc) t))
+       ts)
+
+let gene_from_gff gid transcripts = 
+  assert (transcripts <> []) ;
+  let _, t1 = List.hd transcripts in
+  assert (t1 <> []) ;
+  let symbol = List.assoc "gene_name" (List.hd t1).Gtf.attr in 
+  Gene.({ 
+    id = gid ; symbol ; 
+    loc = convex_hull_of_transcripts transcripts ;
+    transcripts = 
+      List.map
+	Transcript2.(fun (_,exons) -> 
+		       assert (exons <> []) ;
+		       let fst_it = List.hd exons in {
+			 id = List.assoc "transcript_id" fst_it.Gtf.attr ;
+			 gene_symbol = List.assoc "gene_name" fst_it.Gtf.attr ;
+			 description = "" ;
+			 exons = List.map (fun it -> it.Gtf.loc) exons ;
+			 strand = Option.get fst_it.Gtf.strand
+		       })
+	transcripts })
+    
+
+
+let genes gff = V.make 
+  (object
+     method id = "Ensembl_gff.genes[r1]"
+     method deps = [] ++ gff
+     method build = 
+       let transcripts = Gtf.transcripts identity gff in
+       (Hashtbl.enum transcripts 
+          |> Sle.hrel_of_enum (fun ((gid,tid),transcript) -> gid, (tid, transcript.Transcript.annot))
+	  |> Hashtbl.enum) (* transcripts by gid *)
+       /@ (fun (gid,ts) -> gene_from_gff gid ts)
+       |> Array.of_enum
+   end)
+
 (*
 module Guizmin_plugin = struct
   type gff 

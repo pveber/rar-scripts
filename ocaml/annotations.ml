@@ -57,3 +57,13 @@ let _ = Conservation_annotation.make
 let _ = Conservation_annotation.make 
   (Array.enum Rarg_regions.gerard_selection#value)
   "results/chipseq/annotations/RARg_regions_conservation_annotation.tsv"
+
+
+(** RNASEQ **)
+let () = Rnaseq_annotation.(
+  tsv 
+    "results/rnaseq/ensembl_rnaseq_annotation.tsv" 
+    (make 
+       B.Setting.RnaseqData.design 
+       (Ensembl_gff.genes B.Transcriptome.ensembl_transcripts))
+)
