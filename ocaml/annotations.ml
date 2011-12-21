@@ -1,3 +1,5 @@
+(** calcule les annotations des régions chipseq et des gènes *)
+
 open Batteries
 
 let chipseq_design = 

@@ -1,3 +1,5 @@
+(** annotation d'un ensemble de régions par les résultats de chipseq *)
+
 open Oregon
 open Genome
 open Oregon.Target

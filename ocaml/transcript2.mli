@@ -1,3 +1,4 @@
+(** amélioration du module Transcript défini dans Genome qui est insuffisant *)
 open Genome
 
 type t = {
