@@ -13,6 +13,7 @@ type annot = {
   id : string ;
   baseMeanA : float array ; (* for all conditions *)
   baseMeanB : float array ;
+  log2FoldChange : float array ;
   padj      : float array ;
 }
 
@@ -25,7 +26,7 @@ let hfun_of_deseq x =
 let make design genes = 
   let deseqs = List.map (fun (_,x,y) -> B.Rnaseq.DESeq.run x y) design in V.make
   (object
-     method id = "Rnaseq_annotation.make[r1]"
+     method id = "Rnaseq_annotation.make[r2]"
      method deps = [] ++* deseqs ++ genes
      method build = 
        let deseqs = List.map hfun_of_deseq deseqs |> Array.of_list in
@@ -38,6 +39,7 @@ let make design genes =
 	    { id = g.Gene.id ;
 	      baseMeanA = Array.map (fun x -> x#baseMeanA) data ;
 	      baseMeanB = Array.map (fun x -> x#baseMeanB) data ;
+	      log2FoldChange = Array.map (fun x -> x#log2FoldChange) data ;
 	      padj = Array.map (fun x -> x#padj) data ; })
 	 genes
    end)
@@ -55,6 +57,7 @@ let tsv fn target =
     [| "gene id" |] ;
     Array.map (label "baseMeanA") conditions ;
     Array.map (label "baseMeanB") conditions ;
+    Array.map (label "log2FoldChange") conditions ;
     Array.map (label "padj") conditions ;
   ]
   in
@@ -63,6 +66,7 @@ let tsv fn target =
 	[| a.id |] ;
 	Array.map string_of_float a.baseMeanA ;
 	Array.map string_of_float a.baseMeanB ;
+	Array.map string_of_float a.log2FoldChange ;
 	Array.map string_of_float a.padj
       ])
   |> Enum.append (Enum.singleton header)

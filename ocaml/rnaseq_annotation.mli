@@ -9,6 +9,7 @@ type annot = {
   id : string ;
   baseMeanA : float array ; (* for all conditions *)
   baseMeanB : float array ;
+  log2FoldChange : float array ;
   padj      : float array ;
 }
 

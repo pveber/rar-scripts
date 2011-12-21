@@ -11,7 +11,7 @@ points <- t(apply(data[,rar_columns],1,function(x) { x / sqrt(sum(x * x))}))
 
 wss <- (nrow(points)-1)*sum(apply(points,2,var))
 for (i in 2:35) wss[i] <- sum(kmeans(points,centers=i)$withinss)
-pdf('results/chipseq/clustering_maison/choix_nombre_de_clusters.pdf')
+pdf('results/chipseq/clustering_maison/intra_cluster_variance.pdf')
 plot(1:35, wss, type="b", xlab="Number of Clusters", ylab="Within groups sum of squares") 
 dev.off()
 

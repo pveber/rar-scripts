@@ -55,6 +55,10 @@ let _ = Conservation_annotation.make
   "results/chipseq/annotations/original_PanRAR_regions_conservation_annotation.tsv"
 
 let _ = Conservation_annotation.make 
+  (Array.enum PanRAR_regions.gerard_selection#value)
+  "results/chipseq/annotations/PanRAR_regions_conservation_annotation.tsv"
+
+let _ = Conservation_annotation.make 
   (Array.enum Rarg_regions.gerard_selection#value)
   "results/chipseq/annotations/RARg_regions_conservation_annotation.tsv"
 
