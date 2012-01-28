@@ -1,2 +1,2 @@
-<*.ml> or <*.native>: package(biocaml), package(batteries), package(threads), thread
+<*.ml> or <*.native> or <*.byte>: package(biocaml), package(batteries), package(threads), thread
 <*.ml>: annot

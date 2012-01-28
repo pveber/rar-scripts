@@ -34,20 +34,25 @@ let nhre_matrix (orientation, spacer) seq =
   let bg = Pwm.background_of_sequence seq 0.1 in
   Pwm.tandem ~orientation ~spacer balmer_counts balmer_counts bg
 
-let scan motif seq tol = 
-  let mat = nhre_matrix motif seq in
-  Pwm.scan mat seq tol
-
-let fa = 
-  Fasta.enum_of_file Sys.argv.(1) 
-  |> snd 
+let fa =
+  Fasta.enum_of_file Sys.argv.(1)
+  |> snd
   |> List.of_enum
 
 let sequences = List.map snd fa |> Array.of_list
 
-let r = 
-  Array.map (fun s -> Pwm.stub_scan (nhre_matrix (`direct, 5) s) s 10.) sequences 
-
-(* let () = Array.iter (List.iter (fun (i,f) -> printf "%d\t%f\n" i f)) r *)
-
+let matches_of_sequence s = 
+  List.map 
+    (fun motif ->
+       let mat = nhre_matrix motif s in
+       let rcmat = Pwm.reverse_complement mat in 
+       List.append
+	 (Pwm.fast_scan mat s 5.)
+	 (Pwm.fast_scan rcmat s 5.)
+       |> List.map (fun (i,s) -> motif, i, s))
+    selected_motifs
+  |> List.concat
+      
+let matches = 
+  Array.map matches_of_sequence sequences
 
