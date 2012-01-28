@@ -16,6 +16,8 @@ let selected_motifs = List.concat [
   List.init 10 (fun i -> `inverted, i) ;
 ]
 
+let selected_motifs = [ `direct, 0 ; `direct, 1 ; `direct, 2 ; `direct, 5 ]
+
 let balmer_freqs = [|
   [| 0.654 ; 0.045 ; 0.262 ; 0.039 |] ;
   [| 0.019 ; 0.01  ; 0.935 ; 0.036 |] ;
@@ -30,29 +32,55 @@ let balmer_counts =
     (Array.map (fun f -> int_of_float (float 309 *. f)))
     balmer_freqs
 
-let nhre_matrix (orientation, spacer) seq = 
+let nhre_matrix hexamer_counts (orientation, spacer) seq = 
   let bg = Pwm.background_of_sequence seq 0.1 in
-  Pwm.tandem ~orientation ~spacer balmer_counts balmer_counts bg
+  Pwm.tandem ~orientation ~spacer hexamer_counts hexamer_counts bg
 
 let fa =
   Fasta.enum_of_file Sys.argv.(1)
   |> snd
   |> List.of_enum
 
-let sequences = List.map snd fa |> Array.of_list
+let sequences = List.map snd fa
+let control_sequences = List.map (* FIXME *) identity sequences
 
-let matches_of_sequence s = 
-  List.map 
-    (fun motif ->
-       let mat = nhre_matrix motif s in
-       let rcmat = Pwm.reverse_complement mat in 
-       List.append
-	 (Pwm.fast_scan mat s 5.)
-	 (Pwm.fast_scan rcmat s 5.)
-       |> List.map (fun (i,s) -> motif, i, s))
-    selected_motifs
+let matches_of_sequence hexamer_counts s = 
+  let annot motif sense (i,s) -> (motif, sense, i, s) in
+  selected_motifs
+  |> List.map 
+      (fun motif ->
+	 let mat = nhre_matrix hexamer_counts motif s in
+	 let rcmat = Pwm.reverse_complement mat in 
+	 List.(
+	   append
+	     (Pwm.fast_scan mat s 5.   |> map (annot motif `sense))
+	     (Pwm.fast_scan rcmat s 5. |> map (annot motif `antisense))))
   |> List.concat
       
-let matches = 
-  Array.map matches_of_sequence sequences
+let quantile tol xs = assert false
 
+let score_threshold matches tol =
+  matches 
+  |> List.map (List.map (fun (_,_,s) -> s))
+  |> List.concat
+  |> quantile tol
+
+let rec estimation hexamer_counts =
+  let matches = 
+    List.map (matches_of_sequence hexamer_counts) sequences
+  and control_matches = 
+    List.map (matches_of_sequence hexamer_counts) control_sequences
+  in
+  let theta = score_threshold control_matches 0.1 in
+  let selected_matches = 
+    List.map
+      (List.filter (fun (_,_,x) -> x > theta))
+      matches
+  in
+  let fragments = 
+    List.map2
+      (fun seq matches ->
+	List.map (fun (motif,i,_) -> extract motif seq i) matches)
+      sequences selected_matches
+    |> List.concat
+    
