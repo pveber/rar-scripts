@@ -32,8 +32,15 @@ let balmer_counts =
     (Array.map (fun f -> int_of_float (float 309 *. f)))
     balmer_freqs
 
+let print_matrix m = 
+  Array.iter
+    (fun p -> 
+      Array.iter (printf "%.2f  ") p ;
+      print_newline ())
+    m
+
 let nhre_matrix hexamer_counts (orientation, spacer) seq = 
-  let bg = Pwm.background_of_sequence seq 0.1 in
+  let bg = Pwm.flat_background () in
   Pwm.tandem ~orientation ~spacer hexamer_counts hexamer_counts bg
 
 let fa =
@@ -42,10 +49,25 @@ let fa =
   |> List.of_enum
 
 let sequences = List.map snd fa
-let control_sequences = List.map (* FIXME *) identity sequences
+
+(** randomly permute a string (taken from Core JAne St. *)
+let string_shuffle s =
+  let s = String.copy s in
+  let swap i j =
+    let tmp = s.[i] in
+    s.[i] <- s.[j];
+    s.[j] <- tmp 
+  in
+  for i = String.length s downto 2 do
+    swap (i - 1) (Random.int i)
+  done ;
+  s
+
+
+let control_sequences = List.map string_shuffle sequences
 
 let matches_of_sequence hexamer_counts s = 
-  let annot motif sense (i,s) -> (motif, sense, i, s) in
+  let annot motif sense (i,s) = (motif, sense, i, s) in
   selected_motifs
   |> List.map 
       (fun motif ->
@@ -57,30 +79,115 @@ let matches_of_sequence hexamer_counts s =
 	     (Pwm.fast_scan rcmat s 5. |> map (annot motif `antisense))))
   |> List.concat
       
-let quantile tol xs = assert false
+let quantile tol xs = 
+  let open Array in
+  let t = of_enum xs in
+  sort compare t ;
+  let n = length t in
+  t.(int_of_float (float n *. tol))
 
-let score_threshold matches tol =
+let proportion_above theta xs = 
+  let open Array in
+  let t = of_enum xs in
+  (filter (( < ) theta) t |> length |> float) /. (length t |> float)
+
+let score_threshold tol matches =
   matches 
-  |> List.map (List.map (fun (_,_,s) -> s))
-  |> List.concat
+  |> List.map (List.fold_left (fun accu (_,_,_,s) -> max accu s) neg_infinity)
+  |> List.enum
   |> quantile tol
 
-let rec estimation hexamer_counts =
+let score_above theta matches =
+  matches 
+  |> List.map (List.fold_left (fun accu (_,_,_,s) -> max accu s) neg_infinity)
+  |> List.enum
+  |> proportion_above theta
+
+
+let base_complement = function 
+    'a' -> 't'
+  | 't' -> 'a'
+  | 'c' -> 'g'
+  | 'g' -> 'c'
+  | 'n' -> 'n'
+  | 'A' -> 'T'
+  | 'T' -> 'A'
+  | 'C' -> 'G'
+  | 'G' -> 'C'
+  | 'N' -> 'N'
+  | c -> printf "%c\n" c ; assert false
+
+let reverse_complement s = 
+  let n = String.length s in 
+  let rc = String.make n ' ' in
+  for i = 0 to n - 1 do
+    rc.[i] <- base_complement s.[n - 1 - i]
+  done ;
+  rc
+
+let int_of_nucleotide = function
+  | 'a' | 'A' -> 0
+  | 'c' | 'C' -> 1
+  | 'g' | 'G' -> 2
+  | 't' | 'T' -> 3
+  | _ -> 4
+
+
+let extract_hexamers (kind,spacer) sense seq i = 
+  let sub sense i = 
+    let s = String.sub seq i 6 in
+    if sense = `sense then s else reverse_complement s
+  in
+  match kind with
+      `direct -> [ sub sense i ; sub sense (i + 6 + spacer) ]
+    | _ -> assert false (* not implemented *)
+
+let compile_fragments fragments = 
+  let r = Array.(init 6 (fun _ -> make 4 0)) in
+  let foreach s =
+    String.iteri 
+      (fun i c -> 
+	let k = int_of_nucleotide c in 
+	r.(i).(k) <- r.(i).(k) + 1)
+      s
+  in
+  List.iter foreach fragments ;
+  r
+
+let estimation_step hexamer_counts =
   let matches = 
     List.map (matches_of_sequence hexamer_counts) sequences
   and control_matches = 
     List.map (matches_of_sequence hexamer_counts) control_sequences
   in
-  let theta = score_threshold control_matches 0.1 in
+  let theta = score_threshold 0.95 control_matches in
+  let _ = printf "theta = %f\ttreatment = %f\tcontrol = %f\n%!" theta (score_above theta matches) (score_above theta control_matches) in
   let selected_matches = 
     List.map
-      (List.filter (fun (_,_,x) -> x > theta))
+      (List.filter (fun (_,_,_,x) -> x > theta))
       matches
   in
   let fragments = 
     List.map2
       (fun seq matches ->
-	List.map (fun (motif,i,_) -> extract motif seq i) matches)
+	List.map (fun (motif,sense,i,_) -> extract_hexamers motif
+	  sense seq i) matches |> List.concat)
       sequences selected_matches
     |> List.concat
-    
+  in
+  compile_fragments fragments
+
+let rec estimation n hexamer_counts = 
+  if n <= 0 then hexamer_counts
+  else estimation (n - 1) (estimation_step hexamer_counts)
+
+let freq_matrix counts = 
+  let profile x = 
+    let n = Array.fold_left ( + ) 0 x in 
+    Array.map (fun k -> float k /. float n) x
+  in
+  Array.map profile counts
+
+let m = estimation 5 balmer_counts
+let _ = print_matrix (freq_matrix m)
+
