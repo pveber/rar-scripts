@@ -158,14 +158,18 @@ let compile_fragments fragments =
   List.iter foreach fragments ;
   r
 
-let estimation_step hexamer_counts =
+let theta_estimation_step tol hexamer_counts = 
   let matches = 
     List.map (matches_of_sequence hexamer_counts 5.) sequences
   and control_matches = 
     List.map (matches_of_sequence hexamer_counts 5.) control_sequences
   in
-  let theta = score_threshold 0.9 control_matches in
+  let theta = score_threshold (1. -. tol) control_matches in
   let _ = printf "theta = %f\ttreatment = %f\tcontrol = %f\n%!" theta (score_above theta matches) (score_above theta control_matches) in
+  theta, matches, control_matches
+
+let estimation_step tol hexamer_counts =
+  let theta, matches, control_matches = theta_estimation_step tol hexamer_counts in
   let selected_matches = 
     List.map
       (List.filter (fun (_,_,_,x) -> x > theta))
@@ -179,12 +183,11 @@ let estimation_step hexamer_counts =
       sequences selected_matches
     |> List.concat
   in
-  compile_fragments fragments, theta
+  compile_fragments fragments
 
-let rec estimation n hexamer_counts = 
-  assert (n > 0) ;
-  if n = 1 then estimation_step hexamer_counts
-  else estimation (n - 1) (estimation_step hexamer_counts |> fst)
+let rec estimation n tol hexamer_counts = 
+  if n <= 0 then Tuple3.first (theta_estimation_step tol hexamer_counts), hexamer_counts
+  else estimation (n - 1) tol (estimation_step tol hexamer_counts)
 
 let freq_matrix counts = 
   let profile x = 
@@ -193,7 +196,7 @@ let freq_matrix counts =
   in
   Array.map profile counts
 
-let estimated_counts, theta = estimation 1 balmer_counts
+let theta, estimated_counts = estimation 1 0.1 balmer_counts
 let _ = print_matrix (freq_matrix estimated_counts)
 
 let rec seq_enum n =
@@ -207,19 +210,6 @@ let rec seq_enum n =
       List.map (fun s -> s ^ "T") e ;
     ]
   )
-
-let occurrence_stats hexamer_counts theta = 
-  let treatment_matches = 
-    List.map (matches_of_sequence hexamer_counts theta) sequences
-  and control_matches = 
-    List.map (matches_of_sequence hexamer_counts theta) control_sequences
-  in
-  printf "nb occurrences in treatment: %d\n" (List.fold_left (fun accu l -> accu + List.length l) 0 treatment_matches) ;
-  printf "nb occurrences in control:   %d\n" (List.fold_left (fun accu l -> accu + List.length l) 0 control_matches) ;
-  printf "nb treatment regions with a match: %d\n" List.(filter ((<>) []) treatment_matches |> length) ;
-  printf "nb control   regions with a match: %d\n" List.(filter ((<>) []) control_matches |> length)
-
-let () = occurrence_stats estimated_counts theta
 
 (* Comptage du nombre de dodecamères qui passent le seuil trouvé *)
 let () =
