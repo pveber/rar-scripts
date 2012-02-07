@@ -39,7 +39,7 @@ let print_matrix m =
       print_newline ())
     m
 
-let nhre_matrix hexamer_counts (orientation, spacer) seq = 
+let nhre_matrix hexamer_counts (orientation, spacer) = 
   let bg = Pwm.flat_background () in
   Pwm.tandem ~orientation ~spacer hexamer_counts hexamer_counts bg
 
@@ -63,20 +63,23 @@ let string_shuffle s =
   done ;
   s
 
+let random_dna_seq n = 
+  String.init 
+    n 
+    (fun i -> match Random.int 4 with 0 -> 'A' | 1 -> 'C' | 2 -> 'G' | 3 -> 'T' | _ -> assert false)
 
-let control_sequences = List.map string_shuffle sequences
+let control_sequences = List.map (fun s -> random_dna_seq (String.length s)) (*string_shuffle*) sequences
 
 let matches_of_sequence hexamer_counts s = 
   let annot motif sense (i,s) = (motif, sense, i, s) in
   selected_motifs
   |> List.map 
-      (fun motif ->
-	 let mat = nhre_matrix hexamer_counts motif s in
-	 let rcmat = Pwm.reverse_complement mat in 
-	 List.(
-	   append
-	     (Pwm.fast_scan mat s 5.   |> map (annot motif `sense))
-	     (Pwm.fast_scan rcmat s 5. |> map (annot motif `antisense))))
+      List.(fun motif ->
+	let mat = nhre_matrix hexamer_counts motif in
+	let rcmat = Pwm.reverse_complement mat in 
+	append
+	  (Pwm.fast_scan mat s 5.   |> map (annot motif `sense))
+	  (Pwm.fast_scan rcmat s 5. |> map (annot motif `antisense)))
   |> List.concat
       
 let quantile tol xs = 
@@ -160,7 +163,7 @@ let estimation_step hexamer_counts =
   and control_matches = 
     List.map (matches_of_sequence hexamer_counts) control_sequences
   in
-  let theta = score_threshold 0.95 control_matches in
+  let theta = score_threshold 0.9 control_matches in
   let _ = printf "theta = %f\ttreatment = %f\tcontrol = %f\n%!" theta (score_above theta matches) (score_above theta control_matches) in
   let selected_matches = 
     List.map
@@ -188,6 +191,63 @@ let freq_matrix counts =
   in
   Array.map profile counts
 
-let m = estimation 5 balmer_counts
+let m = estimation 1 balmer_counts
 let _ = print_matrix (freq_matrix m)
+
+let rec seq_enum n =
+  if n <= 0 then [ "" ]
+  else (
+    let e = seq_enum (n - 1) in
+    List.concat [
+      List.map (fun s -> s ^ "A") e ;
+      List.map (fun s -> s ^ "C") e ;
+      List.map (fun s -> s ^ "G") e ;
+      List.map (fun s -> s ^ "T") e ;
+    ]
+  )
+
+let () =
+  let theta = 8.3 in
+  let seqs = seq_enum 12 in
+  let mat = nhre_matrix m (`direct, 0) in
+  let l =
+    List.filter
+      (fun s ->
+	let hits = Pwm.fast_scan mat s 0. in
+	List.exists (fun (_,x) -> x > theta) hits)
+      seqs in
+  printf "nb seqs compatible with theta = %f: %d\n" theta (List.length l)
+
+let () = 
+  let theta = 8.3 in
+  let seq = random_dna_seq 6500000 in
+  let mat = nhre_matrix m (`direct, 0) in
+  let l = 
+    Pwm.fast_scan mat seq theta
+  and l2 = 
+    List.map 
+      (fun s -> Pwm.fast_scan mat s theta)
+      control_sequences
+  in
+  printf "nb hits in a 6500000 bp seq: %d\n" (List.length l);
+  printf "nb hits in 13000 control seqs: %d %d\n" List.(length (concat l2)) List.(length (filter (( <> ) []) l2))
+
+
+let () = 
+  let mat = nhre_matrix m (`direct, 1) in
+  List.iter
+    (fun seq -> 
+      Pwm.fast_scan mat seq 0. 
+      |> List.iter (fun (_,x) -> printf "%s\t%f\n" seq x))
+    [ 
+      "AGGTCAgAGGTCA";
+      "CGGTCAgAGGTCA";
+      "ACGTCAgAGGTCA";
+      "AGCTCAgAGGTCA";
+      "AGGACAgAGGTCA";
+      "AGGTAAgAGGTCA";
+      "AGGTCCgAGGTCA";
+    ]	  
+
+
 
