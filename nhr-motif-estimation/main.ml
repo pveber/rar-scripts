@@ -33,9 +33,10 @@ let balmer_counts =
     balmer_freqs
 
 let print_matrix m = 
+  print_endline "  A       C      G     T" ;
   Array.iter
     (fun p -> 
-      Array.iter (printf "%.2f  ") p ;
+      Array.iter (printf "%.3f  ") p ;
       print_newline ())
     m
 
@@ -70,7 +71,7 @@ let random_dna_seq n =
 
 let control_sequences = List.map (fun s -> random_dna_seq (String.length s)) (*string_shuffle*) sequences
 
-let matches_of_sequence hexamer_counts s = 
+let matches_of_sequence hexamer_counts theta s = 
   let annot motif sense (i,s) = (motif, sense, i, s) in
   selected_motifs
   |> List.map 
@@ -78,8 +79,8 @@ let matches_of_sequence hexamer_counts s =
 	let mat = nhre_matrix hexamer_counts motif in
 	let rcmat = Pwm.reverse_complement mat in 
 	append
-	  (Pwm.fast_scan mat s 5.   |> map (annot motif `sense))
-	  (Pwm.fast_scan rcmat s 5. |> map (annot motif `antisense)))
+	  (Pwm.fast_scan mat s theta   |> map (annot motif `sense))
+	  (Pwm.fast_scan rcmat s theta |> map (annot motif `antisense)))
   |> List.concat
       
 let quantile tol xs = 
@@ -159,9 +160,9 @@ let compile_fragments fragments =
 
 let estimation_step hexamer_counts =
   let matches = 
-    List.map (matches_of_sequence hexamer_counts) sequences
+    List.map (matches_of_sequence hexamer_counts 5.) sequences
   and control_matches = 
-    List.map (matches_of_sequence hexamer_counts) control_sequences
+    List.map (matches_of_sequence hexamer_counts 5.) control_sequences
   in
   let theta = score_threshold 0.9 control_matches in
   let _ = printf "theta = %f\ttreatment = %f\tcontrol = %f\n%!" theta (score_above theta matches) (score_above theta control_matches) in
@@ -178,11 +179,12 @@ let estimation_step hexamer_counts =
       sequences selected_matches
     |> List.concat
   in
-  compile_fragments fragments
+  compile_fragments fragments, theta
 
 let rec estimation n hexamer_counts = 
-  if n <= 0 then hexamer_counts
-  else estimation (n - 1) (estimation_step hexamer_counts)
+  assert (n > 0) ;
+  if n = 1 then estimation_step hexamer_counts
+  else estimation (n - 1) (estimation_step hexamer_counts |> fst)
 
 let freq_matrix counts = 
   let profile x = 
@@ -191,8 +193,8 @@ let freq_matrix counts =
   in
   Array.map profile counts
 
-let m = estimation 1 balmer_counts
-let _ = print_matrix (freq_matrix m)
+let estimated_counts, theta = estimation 1 balmer_counts
+let _ = print_matrix (freq_matrix estimated_counts)
 
 let rec seq_enum n =
   if n <= 0 then [ "" ]
@@ -206,35 +208,31 @@ let rec seq_enum n =
     ]
   )
 
+let occurrence_stats hexamer_counts theta = 
+  let treatment_matches = 
+    List.map (matches_of_sequence hexamer_counts theta) sequences
+  and control_matches = 
+    List.map (matches_of_sequence hexamer_counts theta) control_sequences
+  in
+  printf "nb occurrences in treatment: %d\n" (List.fold_left (fun accu l -> accu + List.length l) 0 treatment_matches) ;
+  printf "nb occurrences in control:   %d\n" (List.fold_left (fun accu l -> accu + List.length l) 0 control_matches) ;
+  printf "nb treatment regions with a match: %d\n" List.(filter ((<>) []) treatment_matches |> length) ;
+  printf "nb control   regions with a match: %d\n" List.(filter ((<>) []) control_matches |> length)
+
+let () = occurrence_stats estimated_counts theta
+
+(* Comptage du nombre de dodecamères qui passent le seuil trouvé *)
 let () =
-  let theta = 8.3 in
   let seqs = seq_enum 12 in
-  let mat = nhre_matrix m (`direct, 0) in
+  let mat = nhre_matrix estimated_counts (`direct, 0) in
   let l =
     List.filter
-      (fun s ->
-	let hits = Pwm.fast_scan mat s 0. in
-	List.exists (fun (_,x) -> x > theta) hits)
+      (fun s -> Pwm.fast_scan mat s theta <> [])
       seqs in
   printf "nb seqs compatible with theta = %f: %d\n" theta (List.length l)
 
 let () = 
-  let theta = 8.3 in
-  let seq = random_dna_seq 6500000 in
-  let mat = nhre_matrix m (`direct, 0) in
-  let l = 
-    Pwm.fast_scan mat seq theta
-  and l2 = 
-    List.map 
-      (fun s -> Pwm.fast_scan mat s theta)
-      control_sequences
-  in
-  printf "nb hits in a 6500000 bp seq: %d\n" (List.length l);
-  printf "nb hits in 13000 control seqs: %d %d\n" List.(length (concat l2)) List.(length (filter (( <> ) []) l2))
-
-
-let () = 
-  let mat = nhre_matrix m (`direct, 1) in
+  let mat = nhre_matrix estimated_counts (`direct, 1) in
   List.iter
     (fun seq -> 
       Pwm.fast_scan mat seq 0. 
