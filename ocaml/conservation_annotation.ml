@@ -16,9 +16,9 @@ let hgWiggle_output e =
       |> Enum.group_by hgWiggle_samechr)
   /@ (fun e -> 
     let first = Option.get (Enum.get e) in
-    let chr = sscanf first "variableStep chrom=%s" Std.identity in
-    chr, Enum.map ((fun x -> String.split x "\t") |- Tuple2.mapn int_of_string float_of_string) e |> List.of_enum)
-  |> Enum.fold (fun accu (chr,posz) -> PMap.add chr posz accu) PMap.empty
+    let chr = sscanf first "variableStep chrom=%s" identity in
+    chr, Enum.map ((fun x -> String.split x "\t") |- Tuple2.map int_of_string float_of_string) e |> List.of_enum)
+  |> Enum.fold (fun accu (chr,posz) -> Map.add chr posz accu) Map.empty
       
 
 
@@ -33,7 +33,7 @@ let make locz fn =
   let data = conservation_scores (Enum.clone locz) in
   Enum.map 
     (fun loc -> Location.(
-      (try PMap.find loc.chr data |> List.enum with Not_found -> Enum.empty ()) 
+      (try Map.find loc.chr data |> List.enum with Not_found -> Enum.empty ()) 
       //@ (fun (i, x) -> if i >= loc.st && i <= loc.ed then Some x else None)
 			     |> Enum.fold ( +. ) 0. ))
     (Enum.clone locz)
