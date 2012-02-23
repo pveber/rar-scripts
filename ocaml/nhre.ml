@@ -25,6 +25,7 @@ let balmer_freqs = [|
   [| 0.893 ; 0.01  ; 0.068 ; 0.029 |]
 |]
 
+let motif_length (_,n) = 12 + n
 
 let counts_of_freqs n freqs = 
   Array.map 

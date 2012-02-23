@@ -33,7 +33,7 @@ mkdir -p results/rnaseq
 ./scripts/ocaml/_build/annotations.native 
 
 ./scripts/ocaml/_build/motif_prevalence.native resources/chipseq/regions/PanRAR_regions.fa results/chipseq/regions/PanRAR_regions_motif_prevalence
-
+./scripts/ocaml/_build/nhr_scan_fasta.native resources/chipseq/regions/PanRAR_regions.fa > results/chipseq/regions/PanRAR_regions_nhre_scores.tsv
 
 
 

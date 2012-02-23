@@ -1,7 +1,8 @@
 OCB=ocamlbuild -classic-display -cflags -I,+oregon -tag annot
 
 all: repeat_proportion.native estimate_matrix_threshold.native motif_prevalence.native \
-     hexamer_estimation_local_search.native annotations.native nhr_scan_fasta.native
+     hexamer_estimation_local_search.native annotations.native nhr_scan_fasta.native \
+     nhr_pattern.native
 
 top:
 	$(OCB) -lflags -I,+oregon,sle.cmo,genome.cmo,oregon.cmo,labs.cmo,gzmConfig.cmo -tag debug rar.top
