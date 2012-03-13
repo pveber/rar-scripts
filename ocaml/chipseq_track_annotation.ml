@@ -1,21 +1,23 @@
 open Batteries
 open Printf
+open Biocaml
 open Oregon
 open Target.Infix
 open Genome
-open RarGenome
+
+module Selection = Biocaml.GenomeMap.Selection
 
 let sh = Sle.sh
 
 let selection_of_bed bed = 
   Tsv.enum bed
-  |> Enum.map (fun x -> x#loc)
-  |> RarGenome.Selection.of_locations
+  /@ Location.(fun x -> let l = x#loc in l.chr, Range.make l.st l.ed)
+  |> Selection.of_enum
 
 let jaccard_sim x y = Selection.(
-  let xy = float (length (inter x y))
-  and x = float (length x)
-  and y = float (length y) in
+  let xy = float (size (inter x y))
+  and x = float (size x)
+  and y = float (size y) in
   xy *.2. /. (x +. y)
 )
 
@@ -38,7 +40,7 @@ let sim_matrix tracks =
 let dist_of_sim m = 
   Array.map (Array.map (fun x -> 1. -. x)) m
 
-let dist_matrix = sim_matrix |- dist_of_sim
+let dist_matrix x = sim_matrix x |> dist_of_sim
 
 let recenter n l = Location.(
   let i = (l.st + l.ed) / 2 in
@@ -50,15 +52,7 @@ let macs_recenter n p = Location.(
   move p#loc (i - n) (i + n)
 )
 
-let tracks_of_samples radius samples = 
-  Array.map
-    (fun s -> 
-       B.B.Chipseq.(string_of_sample s,
-		    (macs_peaks |- Macs.filter ~pvalue:1e-9 |- Macs.locations_around_summit ~radius |- selection_of_bed) s))
-    (Array.of_list samples)
-
-
-module Wei_dataset = struct
+module Wei = struct
 
   type col tsv_format = {
     loc : Location ;
@@ -69,7 +63,8 @@ module Wei_dataset = struct
     Misc.wget 
       ~gunzip:true
       ("ftp://ftp.ncbi.nlm.nih.gov/pub/geo/DATA/supplementary/samples/GSM288nnn/" ^ path)
-      Tsv.({has_header = false ; parse = Tsv_format.of_array })
+      Tsv.({has_header = false ; parse = Tsv_format.OO.of_array })
+    |> Ucsc_lift_over.conversion ~org_from:"mm8" ~org_to:"mm9"
 
   let nanog_peaks = peaks "GSM288345/GSM288345_ES_Nanog.txt.gz"
   let oct4_peaks = peaks "GSM288346/GSM288346_ES_Oct4.txt.gz"
@@ -84,12 +79,14 @@ module Wei_dataset = struct
   let n_myc_peaks = peaks "GSM288357/GSM288357_ES_n-Myc.txt.gz"
   let p300_peaks = peaks "GSM288359/GSM288359_ES_p300.txt.gz"
   let suz12_peaks = peaks "GSM288360/GSM288360_ES_Suz12.txt.gz"
-
+  let esrrb_peaks = peaks "GSM288355/GSM288355%5FES%5FEsrrb%2Etxt%2Egz"
+  let ctcf_peaks = peaks "GSM288351/GSM288351%5FES%5FCtcf%2Etxt%2Egz"
 
   let selection n x = 
     Tsv.enum x 
-    |> Enum.map (fun x -> recenter n x.loc)
-    |> RarGenome.Selection.of_locations
+    /@ (fun x -> recenter n x#loc)
+    /@ Location.(fun l -> l.chr, Range.make l.st l.ed)
+    |> Selection.of_enum
 
   let tracks n = [|
     "Wei Nanog", selection n nanog_peaks ;
@@ -105,6 +102,8 @@ module Wei_dataset = struct
     "Wei n-Myc", selection n n_myc_peaks ;
     "Wei p300", selection n p300_peaks ;
     "Wei Suz12", selection n suz12_peaks ;
+    "Wei Esrrb", selection n esrrb_peaks ;
+    "Wei CTCF", selection n ctcf_peaks
   |]
 end
   
@@ -127,8 +126,9 @@ let rar_es_d2_8 = rar_es "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplementary/samp
 
 let rar_es_selection n x = 
   Tsv.enum x 
-  |> Enum.map (fun x -> recenter n x)
-  |> RarGenome.Selection.of_locations
+  /@ (fun x -> recenter n x)
+  /@ Location.(fun l -> l.chr, Range.make l.st l.ed)
+  |> Selection.of_enum
 
 let rar_es_tracks n = [|
    "RAR-ES D2", rar_es_selection n rar_es_d2 ;
@@ -156,8 +156,9 @@ let smad2_es_18h_dmso = smad2_es "ftp://ftp.ncbi.nih.gov/pub/geo/DATA/supplement
 
 let smad2_es_selection n x =
   Tsv.enum x
-  |> Enum.map (fun x -> recenter n x)
-  |> RarGenome.Selection.of_locations
+  /@ (fun x -> recenter n x)
+  /@ Location.(fun l -> l.chr, Range.make l.st l.ed)
+  |> Selection.of_enum
 
 let smad2_es_tracks n = [|
    "pSMAD2-ES 18h + activin", smad2_es_selection n smad2_es_18h_activin ;
@@ -179,7 +180,7 @@ let gsm_fetch ty url = Target.F.make
    end)
 
 
-module Schnetz_dataset = struct
+module Schnetz = struct
   (* http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE22341 *)
 
   let ty = Tsv.({ has_header = false ; 
@@ -195,8 +196,9 @@ module Schnetz_dataset = struct
 
   let selection n x =
     Tsv.enum x
-    |> Enum.map (fun x -> recenter n x#loc)
-    |> RarGenome.Selection.of_locations
+    /@ (fun x -> recenter n x#loc)
+    /@ Location.(fun l -> l.chr, Range.make l.st l.ed)
+    |> Selection.of_enum
 
   let tracks n = [|
     "Schnetz p300 high", selection n p300_high ;
@@ -213,18 +215,17 @@ let encode_tsv_parser l =
   Location.make l.(1) (int_of_string l.(2)) (int_of_string l.(3))
 
 let p300_encode_tsv =
-  Target.F.input "manual/chipseq/peaks/p300_encode.tsv" Tsv.({ has_header = false ; parse = encode_tsv_parser })
+  Target.F.input "resources/chipseq/peaks/p300_encode.tsv" Tsv.({ has_header = false ; parse = encode_tsv_parser })
 
 let p300_encode n = 
   ("p300 ENCODE",
    rar_es_selection n p300_encode_tsv)
 
 let all_tracks n = Array.concat [
-  Wei_dataset.tracks n ;
-  tracks_of_samples n Selected_chipseq_regions.conditions ;
+  Wei.tracks n ;
   rar_es_tracks n ;
-  smad2_es_tracks n ;
-  Schnetz_dataset.tracks n ;
+  smad2_es_tracks n ; 
+  Schnetz.tracks n ; 
   [| p300_encode n |]
 ]
 
@@ -272,3 +273,15 @@ let bed_of_dataset x = Target.F.make
      method ty = Tsv.({ has_header = false ; parse = new Bed.base_parser })
    end)
   
+let tsv tracks locations fn =
+  let tracks = Array.to_list tracks in
+  locations
+  /@ (fun l -> 
+        let l = Location.(l.chr, Range.make l.st l.ed) in
+	List.map (snd |- Selection.intersects l) tracks)
+  /@ (fun line -> 
+    line
+    |> List.map (fun b -> if b then "1" else "0")
+    |> String.concat "\t")
+  |> Enum.(append (singleton (List.map fst tracks |> String.concat "\t")))
+  |> File.write_lines fn

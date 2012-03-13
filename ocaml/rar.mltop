@@ -2,6 +2,7 @@ Accu
 B
 Binding_loci
 Chipseq_annotation
+Chipseq_track_annotation
 Conservation_annotation
 Ensembl_gff
 Gene
@@ -14,3 +15,4 @@ Rnaseq_annotation
 S
 Transcript2
 Transfac
+Ucsc_lift_over

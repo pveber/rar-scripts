@@ -2,7 +2,7 @@ OCB=ocamlbuild -classic-display -cflags -I,+oregon -tag annot
 
 all: repeat_proportion.native estimate_matrix_threshold.native motif_prevalence.native \
      hexamer_estimation_local_search.native annotations.native nhr_scan_fasta.native \
-     nhr_pattern.native
+     nhr_pattern.native chipseq_track_annotation_main.native
 
 top:
 	$(OCB) -lflags -I,+oregon,sle.cmo,genome.cmo,oregon.cmo,labs.cmo,gzmConfig.cmo -tag debug rar.top
@@ -15,6 +15,9 @@ top:
 	$(OCB) -tag debug $@
 
 annotations.native: annotations.ml
+	$(OCB) -lflags -I,+oregon,sle.cmx,genome.cmx,oregon.cmx,labs.cmx,gzmConfig.cmx -tag debug $@
+
+chipseq_track_annotation_main.native: chipseq_track_annotation_main.ml
 	$(OCB) -lflags -I,+oregon,sle.cmx,genome.cmx,oregon.cmx,labs.cmx,gzmConfig.cmx -tag debug $@
 
 clean:

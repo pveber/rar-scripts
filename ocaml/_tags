@@ -1,2 +1,3 @@
-<*>: pkg_batteries, pkg_threads, pkg_oregon, pkg_biocaml, pkg_netstring, pkg_ocamlgraph, pkg_gsl, pkg_pmt
+<*>: pkg_batteries, pkg_threads, pkg_oregon, pkg_biocaml, pkg_netstring, pkg_ocamlgraph, pkg_gsl, pkg_pmt, pkg_col
 <nhr_pattern.*>: pkg_archimedes
+<chipseq_track_annotation.*>: syntax_camlp4o, use_camlp4, pkg_col.syntax
