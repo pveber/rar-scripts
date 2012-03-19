@@ -4,6 +4,8 @@ open Oregon
 open Target
 open Target.Infix
 
+module LMap = Biocaml_genomeMap.LMap
+
 let stranded_location_of_row row = Gtf.(
   row.loc,
   match row.strand with
@@ -18,6 +20,15 @@ let promoters ?(up = 1000) ?(down = 0) gff = Gtf.(Tsv.enum gff
   |> Enum.map stranded_location_of_row
   |> Enum.map (fun (loc,strand) -> RarGenome.location_upstream ~up ~down strand loc)
   |> RarGenome.Selection.of_locations
+)
+
+let tss gff = Gtf.(
+  Tsv.enum gff
+  // (fun row -> row.kind = `exon && List.assoc "exon_number" row.attr = "1")
+  /@ (fun row -> stranded_location_of_row row, List.assoc "gene_id")
+  /@ (fun ((loc,strand), gene_id) -> RarGenome.location_upstream ~up:0 ~down:0 strand loc, gene_id)
+  /@ (fun (loc,gene_id) -> Location.(loc.chr, Biocaml_range.make loc.st loc.ed), gene_id)
+  |> LMap.of_enum
 )
 
 let exons gff = Gtf.(Tsv.enum gff
@@ -95,6 +106,8 @@ let genes gff = V.make
        |> Array.of_enum
    end)
 
+
+
 (*
 module Guizmin_plugin = struct
   type gff 
@@ -113,3 +126,4 @@ module Guizmin_plugin = struct
     []
 end
 *)
+

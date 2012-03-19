@@ -20,5 +20,8 @@ annotations.native: annotations.ml
 chipseq_track_annotation_main.native: chipseq_track_annotation_main.ml
 	$(OCB) -lflags -I,+oregon,sle.cmx,genome.cmx,oregon.cmx,labs.cmx,gzmConfig.cmx -tag debug $@
 
+nhr_genome_scan.native: nhr_genome_scan.ml
+	$(OCB) -lflags -I,+oregon,sle.cmx,genome.cmx,oregon.cmx,labs.cmx,gzmConfig.cmx -tag debug $@
+
 clean:
 	$(OCB) -clean
