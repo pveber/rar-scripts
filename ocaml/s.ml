@@ -16,4 +16,30 @@ let bed_to_value bed =
       Tsv.enum bed /@ (fun x -> x#loc) |> Array.of_enum
   end)
 
-	   
+let newloc loc = Genome.Location.(
+  loc.chr, Biocaml.Range.make loc.st loc.ed
+)
+
+let oldloc (chr, r) = Biocaml_range.(
+  Genome.Location.make chr r.lo r.hi
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

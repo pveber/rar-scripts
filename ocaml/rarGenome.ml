@@ -76,9 +76,9 @@ end
 let location_upstream ~up ~down strand loc = Location.(
   match strand with
     | `Sense ->  
-	make loc.chr (max 0 (loc.st - up + 1)) (max 0 (loc.st + down))
+	make loc.chr (max 0 (loc.st - up)) (max 0 (loc.st + down))
     | `Antisense -> 
-	make loc.chr (max 0 (loc.ed - down + 1)) (max 0 (loc.ed + up))
+	make loc.chr (max 0 (loc.ed - down)) (max 0 (loc.ed + up))
 )
 
 module Selection = struct

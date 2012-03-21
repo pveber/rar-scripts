@@ -5,8 +5,10 @@ open Batteries
 let chipseq_design = 
   List.concat [
     List.map (fun x -> x, `Input_1) PanRAR_regions.conditions ;
-    List.map (fun x -> x, `Mendoza_input) Rarg_regions.conditions ;
-    [ `Mendoza_metaprofile_RARg, `Mendoza_input; `Mendoza_metaprofile_RXRa, `Mendoza_input ]
+    [`F9_ATRA_panRAR_1,`F9_WT_panRAR_1; `F9_ATRA24_panRAR_1,`F9_WT_panRAR_1;`F9_ATRA48_panRAR_1,`F9_WT_panRAR_1] ;
+    [`F9_ATRA2_panRXR_1,`F9_WT_panRXR_1;`F9_ATRA24_panRXR_1,`F9_WT_panRXR_1;`F9_ATRA48_panRXR_1,`F9_WT_panRXR_1] ;
+(*    List.map (fun x -> x, `Mendoza_input) Rarg_regions.conditions ; *)
+(*    [ `Mendoza_metaprofile_RARg, `Mendoza_input; `Mendoza_metaprofile_RXRa, `Mendoza_input ]*)
   ]
     
 
@@ -16,7 +18,8 @@ let original_panRAR_regions = Oregon.(
     (Bed.basic_ty false)
 )
 
-
+(** NEIBOURING GENES *)
+let _ = PeakGeneAssoc.panRAR_regions_to_gene_tsv "results/chipseq/annotations/PanRAR_regions_closest_ensembl_gene.tsv"
 
 (** CHIPSEQ *)
 let _ = Chipseq_annotation.(

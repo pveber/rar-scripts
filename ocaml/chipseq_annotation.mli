@@ -4,14 +4,37 @@ open Oregon
 open Genome
 open Oregon.Target
 
-type 'a annot = {
+type annot = {
   loc : Location.t ;
-  counts : ('a, int) HFun.t ;
-  coverage : ('a, float) HFun.t ;
-  pvalue : ('a, float) HFun.t
+  counts : int array ;
+  coverage : float array ; 
+  pvalue : float array ;
 }
 
-val make : 
-  (B.Chipseq.sample * B.Chipseq.sample) list -> Location.t array value -> B.Chipseq.sample annot array value
+type t = annot array * B.Chipseq.sample array * (B.Chipseq.sample * B.Chipseq.sample) array
 
-val tsv : string -> B.Chipseq.sample annot array -> unit
+val make : 
+  (B.Chipseq.sample * B.Chipseq.sample) list -> Location.t array value -> t value
+
+val tsv : string -> t -> unit
+
+val i :  t -> B.Chipseq.sample -> int
+val i2 : t -> B.Chipseq.sample -> B.Chipseq.sample -> int
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

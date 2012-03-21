@@ -37,14 +37,30 @@ let gerard_selection =
     method id = "PanRAR_regions.gerard_selection"
     method deps = [] ++ chipseq_annotation
     method build = 
-      let ann = chipseq_annotation#value in
+      let (values,_,_) as ann = chipseq_annotation#value in
       Array.filteri
 	(fun i loc -> 
-	  let pval = ann.(i).Chipseq_annotation.pvalue in
+	  let pval = values.(i).Chipseq_annotation.pvalue
+          and i2 = Chipseq_annotation.i2 ann in
 	  List.exists 
-	    (fun (rar,rxr) -> pval $ rar >= 7. && pval $ rxr >= 7.)
+	    (fun (rar,rxr) -> pval.(i2 rar `Input_1) >= 7. && pval.(i2 rxr `Input_1) >= 7.)
 	    paired_conditions)
 	all_of_them#value
    end)
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
