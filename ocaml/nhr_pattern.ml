@@ -1,19 +1,22 @@
 open Batteries
 open Printf
 open Biocaml
+open Misc
 
 module A = Archimedes
 
 let fa_input = Sys.argv.(1)
 let output = Sys.argv.(2)
+let tol = float_of_string Sys.argv.(3)
+
 let _ = ignore (Sys.command ("mkdir -p " ^ output))
-let theta = Sys.argv.(3)
 
 let selected_motifs = List.concat [
   List.init 10 (fun i -> `direct, i) ;
   List.init 10 (fun i -> `everted, i) ;
   List.init 10 (fun i -> `inverted, i) ;
 ]
+
 
 
 (* Matrix-related functions *)
@@ -336,6 +339,16 @@ let fa =
 
 let sequences = List.map snd fa
 
+let theta =
+  let control_sequences = List.map (fun s -> random_dna_seq (String.length s)) (*string_shuffle*) sequences in 
+  let control_matches = 
+    List.map (Nhre.matches_of_sequence [`direct, 0] Nhre.estimated_counts 0.) control_sequences
+  in
+  score_threshold tol control_matches
+
+
+
+
 let motif_search theta seq = 
   Nhre.matches_of_sequence selected_motifs Nhre.estimated_counts theta seq
   |> List.filter (function 
@@ -444,7 +457,7 @@ let clock_work_diagram2 center_motif motif_freq occbyseq =
   A.close vp
 
 let () = 
-  let occbyseq = occbyseq (float_of_string theta) in
+  let occbyseq = occbyseq theta in
   let n = Array.length occbyseq in
   let motif_counts_byseq = motif_counts_byseq occbyseq in
   let motif_counts = cmargin (+) 0 motif_counts_byseq in
@@ -458,3 +471,10 @@ let () =
   let node_layout,bbox = association_graph_neato_layout motif_freq g in
   association_graph_archimedes_output motif_freq bbox node_layout g ;
   List.iteri (fun i _ -> clock_work_diagram2 i motif_freq occbyseq) selected_motifs
+
+
+
+
+
+
+

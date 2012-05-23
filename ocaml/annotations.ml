@@ -21,7 +21,9 @@ let original_panRAR_regions = Oregon.(
 (** NEIBOURING GENES *)
 let _ = PeakGeneAssoc.panRAR_regions_to_gene_tsv "results/chipseq/annotations/PanRAR_regions_closest_ensembl_gene.tsv"
 
-(** CHIPSEQ *)
+(** CHIPSEQ ANNOTATION *)
+let _ = Chipseq_annotation.(tsv "results/chipseq/annotations/allPanRAR_regions_chipseq_annotation.tsv" (make chipseq_design PanRAR_regions.all_of_them)#value);;
+
 let _ = Chipseq_annotation.(
   tsv
     "results/chipseq/annotations/RARg_regions_chipseq_annotation.tsv"

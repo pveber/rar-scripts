@@ -1,0 +1,17 @@
+chipseq_data <- read.table('results/chipseq/annotations/PanRAR_regions_chipseq_annotation.tsv',header=TRUE,sep='\t')
+closest_gene <- read.table('results/chipseq/annotations/PanRAR_regions_closest_ensembl_gene.tsv',header=TRUE,sep='\t')
+
+pdf("tss_dist.pdf",height=12)
+par(mfrow=c(4,1))
+hist(abs(closest_gene$position),breaks=1000)
+hist(abs(closest_gene$position)[abs(closest_gene$position) < 10000],breaks=1000)
+hist(abs(closest_gene$position)[abs(closest_gene$position) < 100],breaks=1000)
+hist(log10(closest_gene$position),breaks=100)
+dev.off()
+
+pdf("tss_pos.pdf",height=12)
+par(mfrow=c(3,1))
+hist((closest_gene$position)[abs(closest_gene$position) < 50000],breaks=1000)
+hist((closest_gene$position)[abs(closest_gene$position) < 10000],breaks=1000)
+hist((closest_gene$position)[abs(closest_gene$position) < 100],breaks=1000)
+dev.off()

@@ -1,0 +1,10 @@
+# OASIS_START
+# DO NOT EDIT (digest: d84b077d4f3642a32a74a001beba18fe)
+# Executable rarscript
+"src/rush.byte": pkg_threads
+"src/rush.byte": pkg_biocaml
+"src/rush.byte": pkg_batteries
+<src/*.ml{,i}>: pkg_threads
+<src/*.ml{,i}>: pkg_biocaml
+<src/*.ml{,i}>: pkg_batteries
+# OASIS_STOP

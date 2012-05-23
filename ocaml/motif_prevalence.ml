@@ -78,22 +78,6 @@ let roc_curve_figure dir hexamer_counts selected_region_label selected_regions s
   id, auc
 
 
-let occurrences_tsv hexamer_counts = 
-  let foreach selected_motifs = 
-    let matches = 
-      List.map (Nhre.matches_of_sequence selected_motifs hexamer_counts 4.) sequences
-    in
-    List.mapi 
-      (fun i hits -> 
-	List.enum hits
-	/@ (fun (motif,sense,pos,score) -> sprintf "%d\t%s\t%s\t%d\t%.3f" i (Nhre.string_of_motif motif) (if sense = `sense then "+" else "-") pos score))
-      matches
-    |> List.enum
-    |> Enum.concat
-  in
-  (List.enum (List.tl selected_motifs) /@ foreach)
-  |> Enum.concat
-  |> File.write_lines (output ^ "/predictions.tsv")
 
 
 let res_for_subset subset_label subset = 
@@ -132,8 +116,6 @@ let () =
     ann.CA.pvalue.(i2 `F9_ATRA48_panRXR_1 `Input_1) >= 7.
   in
   res_for_subset "T48" (List.map filter regions)
-
-let () = occurrences_tsv Nhre.estimated_counts
 
 
 

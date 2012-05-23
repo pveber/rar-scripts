@@ -7,6 +7,8 @@ rar_columns <- c('coverage.F9.WT.panRAR.1','coverage.F9.ATRA.panRAR.1',
 data <- read.table('results/chipseq/annotations/PanRAR_regions_chipseq_annotation.tsv',header=TRUE,sep='\t')
 
 
+data <- data[ data$pvalue.F9.ATRA.panRAR.1.F9.WT.panRAR.1 > 6 | data$pvalue.F9.ATRA24.panRAR.1.F9.WT.panRAR.1 > 6 | data$pvalue.F9.ATRA48.panRAR.1.F9.WT.panRAR.1 > 6,]
+
 points <- t(apply(data[,rar_columns],1,function(x) { x / sqrt(sum(x * x))}))
 
 wss <- (nrow(points)-1)*sum(apply(points,2,var))
@@ -16,7 +18,7 @@ plot(1:35, wss, type="b", xlab="Number of Clusters", ylab="Within groups sum of 
 dev.off()
 
 
-km <- kmeans(points,30)
+km <- kmeans(points,10)
 clustering <- km$cluster
 
 x <- seq(0,6,by=0.1)

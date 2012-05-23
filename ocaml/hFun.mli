@@ -1,7 +1,7 @@
 type ('a,'b) t
 
 val make : ?init:'a BatEnum.t -> ('a -> 'b) -> ('a, 'b) t
-val close : ('a, 'b) t -> ('a, 'b) t
+val of_enum : ('a * 'b) BatEnum.t -> ('a, 'b) t
 
 val cache : ('a -> 'b) -> ('a -> 'b)
 
@@ -19,3 +19,7 @@ end
 (* val preimage : ('a -> 'b) -> 'a Enum.t -> ('b, 'a) t *)
 (* val compose : ('b -> 'c) -> ('a, 'b) t -> ('a, 'c) t *)
 (* val image : ('a, 'b) t -> 'b Enum.t *)
+
+
+
+

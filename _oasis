@@ -1,0 +1,14 @@
+OASISFormat: 0.2
+Name:        rarscripts
+Version:     2.0
+Synopsis:    RAR power
+Authors:     me
+License:     GPL-3.0
+Plugins:     META (0.2)
+
+Executable rarscript
+  Path:         src
+  BuildTools:   ocamlbuild
+  BuildDepends: threads, batteries, biocaml
+  MainIs:       rush.ml
+  

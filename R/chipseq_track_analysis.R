@@ -1,5 +1,8 @@
 data <- read.table('results/chipseq/annotations/PanRAR_regions_chipseq_annotation.tsv',header=TRUE,sep='\t')
+data_random <- read.table('results/chipseq/annotations/Random_regions_chipseq_annotation.tsv',header=TRUE,sep='\t')
+
 tracks <- read.table('results/chipseq/annotations/PanRAR_regions_chipseq_es.tsv',header=TRUE,sep='\t')
+tracks_random <- read.table('results/chipseq/annotations/Random_regions_chipseq_es.tsv',header=TRUE,sep='\t')
 
 prop <- function(col,sel) {
   sum(col[sel]) / sum(sel)
@@ -42,3 +45,11 @@ profile(data$pvalue.F9.WT.panRAR.1 > 9 & data$pvalue.F9.ATRA.panRAR.1 < 2., "Str
 profile(data$pvalue.F9.WT.panRAR.1 > 9 & data$pvalue.F9.ATRA.panRAR.1 > 9 & data$pvalue.F9.ATRA24.panRAR.1 < 0.5, "Strongly repressed at 24h")
 
 dev.off()
+
+
+hist(tracks$Wei.Esrrb[abs(tracks$Wei.Esrrb) < 100])
+adj = tracks == 0
+adj[is.na(adj)] <- FALSE
+barplot(colSums(adj) / colSums(adj_random))
+fisher.test(matrix(c(5067,13868 - 5067,54,13868 - 54),2,2))
+

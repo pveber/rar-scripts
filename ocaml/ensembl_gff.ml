@@ -106,7 +106,12 @@ let genes gff = V.make
        |> Array.of_enum
    end)
 
-
+let rank_function gff = 
+  let genes = (genes gff)#value in 
+  Array.enum genes
+  |> Enum.mapi (fun i g -> g.Gene.id, i)
+  |> HFun.of_enum
+    
 
 (*
 module Guizmin_plugin = struct

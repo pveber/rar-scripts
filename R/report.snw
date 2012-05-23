@@ -1,0 +1,208 @@
+\documentclass{article}
+
+\usepackage{a4wide}
+
+\title{RAR report}
+
+\begin{document}
+\maketitle
+
+\begin{figure}
+  \centering
+
+<< fig = TRUE, echo = FALSE >>=
+all_binding_regions <- read.table('results/chipseq/annotations/allPanRAR_regions_chipseq_annotation.tsv',header=TRUE,sep='\t')
+
+rar_max_pvalue <- pmax(all_binding_regions$pvalue.F9.WT.panRAR.1.input.1,all_binding_regions$pvalue.F9.ATRA.panRAR.1.input.1,all_binding_regions$pvalue.F9.ATRA24.panRAR.1.input.1,all_binding_regions$pvalue.F9.ATRA48.panRAR.1.input.1)
+rxr_max_pvalue <- pmax(all_binding_regions$pvalue.F9.WT.panRXR.1.input.1,all_binding_regions$pvalue.F9.ATRA2.panRXR.1.input.1,all_binding_regions$pvalue.F9.ATRA24.panRXR.1.input.1,all_binding_regions$pvalue.F9.ATRA48.panRXR.1.input.1)
+
+x = seq(1,15,0.2)
+y = c()
+for(i in 1:length(x)) {
+      y[i] = sum((rar_max_pvalue > x[i]) & (rxr_max_pvalue > x[i]))
+}
+plot(x,y,xlab="p-value threshold",ylab="number of RAR and RXR positive regions")
+@
+
+  \caption{Number of regions which are positive for
+    both RAR and RXR as a function the p-value threshold.}
+\label{fig:pvalue-choice-inter}
+\end{figure}
+
+
+\begin{figure}
+  \centering
+
+<< fig = TRUE, echo = FALSE >>=
+for(i in 1:length(x)) {
+      y[i] = sum((rar_max_pvalue > x[i]) & (rxr_max_pvalue > x[i])) / sum(rar_max_pvalue > x[i])
+}
+plot(x,y)
+@ 
+  
+  \caption{Plot for the proportion of RAR positive regions which are also RXR
+    positive, as a function of the p-value threshold.}
+\label{fig:pvalue-choice-prop}
+\end{figure}
+
+\begin{figure}
+  \centering
+<<fig = TRUE, echo = FALSE>>=
+fdr_rar_t0 <- p.adjust(10 ^ (- all_binding_regions$pvalue.F9.WT.panRAR.1.input.1), "fdr")
+fdr_rar_t2 <- p.adjust(10 ^ (- all_binding_regions$pvalue.F9.ATRA.panRAR.1.input.1), "fdr")
+fdr_rar_t24 <- p.adjust(10 ^ (- all_binding_regions$pvalue.F9.ATRA24.panRAR.1.input.1), "fdr")
+fdr_rar_t48 <- p.adjust(10 ^ (- all_binding_regions$pvalue.F9.ATRA48.panRAR.1.input.1), "fdr")
+plot(c(),c(),xlab='- log pv',ylab='FDR',xlim=c(0,10),ylim=c(0,10))
+points(all_binding_regions$pvalue.F9.WT.panRAR.1.input.1,- log10(fdr_rar_t0),pch='.',col='red')
+points(all_binding_regions$pvalue.F9.ATRA.panRAR.1.input.1,- log10(fdr_rar_t2),pch='.',col='blue')
+points(all_binding_regions$pvalue.F9.ATRA24.panRAR.1.input.1,- log10(fdr_rar_t24),pch='.',col='purple')
+points(all_binding_regions$pvalue.F9.ATRA48.panRAR.1.input.1,- log10(fdr_rar_t48),pch='.',col='orange')
+@   
+\caption{FDR as a function of pvalue in RAR regions. The four colors
+  correspond to the four time points of the dynamics.}
+  \label{fig:pval-vs-fdr-rar}
+\end{figure}
+
+\begin{figure}
+  \centering
+<<fig = TRUE, echo = FALSE>>=
+fdr_rxr_t0 <- p.adjust(10 ^ (- all_binding_regions$pvalue.F9.WT.panRXR.1.input.1), "fdr")
+fdr_rxr_t2 <- p.adjust(10 ^ (- all_binding_regions$pvalue.F9.ATRA2.panRXR.1.input.1), "fdr")
+fdr_rxr_t24 <- p.adjust(10 ^ (- all_binding_regions$pvalue.F9.ATRA24.panRXR.1.input.1), "fdr")
+fdr_rxr_t48 <- p.adjust(10 ^ (- all_binding_regions$pvalue.F9.ATRA48.panRXR.1.input.1), "fdr")
+
+rar_max_fdr <- - log10(pmax(fdr_rar_t0,fdr_rar_t2,fdr_rar_t24,fdr_rar_t48))
+rxr_max_fdr <- - log10(pmax(fdr_rxr_t0,fdr_rxr_t2,fdr_rxr_t24,fdr_rxr_t48))
+
+x = seq(1,15,0.2)
+y = c()
+for(i in 1:length(x)) {
+      y[i] = sum((rar_max_fdr > x[i]) & (rxr_max_fdr > x[i]))
+}
+plot(x,y,xlab="FDR threshold",ylab="number of RAR and RXR positive regions")
+@     
+  \caption{Number of RAR and RXR positive regions as a function of ($- \log_{10}$) FDR.}
+  \label{fig:fdr-value-inter}
+\end{figure}
+
+<<fig = FALSE, echo = FALSE>>=
+library(MASS)
+timepoints <- c(0,2,4,6)
+rar_columns <- c('coverage.F9.WT.panRAR.1','coverage.F9.ATRA.panRAR.1',
+	         'coverage.F9.ATRA24.panRAR.1','coverage.F9.ATRA48.panRAR.1')
+
+binding <- read.table('results/chipseq/annotations/PanRAR_regions_chipseq_annotation.tsv',header=TRUE,sep='\t')
+points <- t(apply(binding[,rar_columns],1,function(x) { x / sqrt(sum(x * x))}))
+
+x <- seq(0,6,by=0.1)
+interp_points <- apply(points,1,function(y) { return(approx(timepoints,y,xout=x)$y) })
+
+profile <- function(sel) { 
+  plot(c(),c(),xlim=c(0,6),ylim=c(0, 2 * quantile(points[sel,],0.8)),xlab='Time',ylab='Normalized coverage',main=paste(sum(sel),'regions'))
+  lines(timepoints,c(median(points[sel,1]),median(points[sel,2]),median(points[sel,3]),median(points[sel,4])),col='#FF0000')
+  boxplot(points[sel,1],at=timepoints[1],add=TRUE)
+  boxplot(points[sel,2],at=timepoints[2],add=TRUE)
+  boxplot(points[sel,3],at=timepoints[3],add=TRUE)
+  boxplot(points[sel,4],at=timepoints[4],add=TRUE)
+}
+@ 
+
+\begin{figure}
+  \centering
+
+<<fig = TRUE, echo = FALSE>>=
+km <- kmeans(points,4)
+clustering <- km$cluster
+old.par <- par(no.readonly = TRUE)
+par(mfrow=c(2,2))
+profile(clustering == 1)
+profile(clustering == 2)
+profile(clustering == 3)
+profile(clustering == 4)
+par(old.par)
+@ 
+
+  \caption{Clustering of (normalized) coverage chipseq profiles with 4 classes.}
+  \label{fig:cluster-all-4}
+\end{figure}
+
+\begin{figure}
+  \centering
+
+<<fig = TRUE, echo = FALSE>>=
+km <- kmeans(points,9)
+clustering <- km$cluster
+old.par <- par(no.readonly = TRUE)
+par(mfrow=c(3,3))
+profile(clustering == 1)
+profile(clustering == 2)
+profile(clustering == 3)
+profile(clustering == 4)
+profile(clustering == 5)
+profile(clustering == 6)
+profile(clustering == 7)
+profile(clustering == 8)
+profile(clustering == 9)
+par(old.par)
+@ 
+
+  \caption{Clustering of (normalized) coverage chipseq profiles with 9 classes.}
+  \label{fig:cluster-all-9}
+\end{figure}
+
+
+
+\begin{figure}
+  \centering
+
+<<fig = TRUE, echo = FALSE>>=
+theta <- 5.
+dynamic_rar <- binding$pvalue.F9.ATRA.panRAR.1.F9.WT.panRAR.1 > theta | binding$pvalue.F9.ATRA24.panRAR.1.F9.WT.panRAR.1 > theta | binding$pvalue.F9.ATRA48.panRAR.1.F9.WT.panRAR.1 > theta
+km <- kmeans(points[dynamic_rar,],4)
+clustering <- rep(0,length(dynamic_rar))
+clustering[dynamic_rar] <- km$cluster
+
+old.par <- par(no.readonly = TRUE)
+par(mfrow=c(2,2))
+profile(clustering == 1)
+profile(clustering == 2)
+profile(clustering == 3)
+profile(clustering == 4)
+par(old.par)
+@ 
+
+  \caption{Clustering of (normalized) coverage chipseq profiles with 4 classes for dynamic regions.}
+  \label{fig:cluster-dyn-4}
+\end{figure}
+
+
+\begin{figure}
+  \centering
+
+<<fig = TRUE, echo = FALSE>>=
+theta <- 5.
+dynamic_rar <- binding$pvalue.F9.ATRA.panRAR.1.F9.WT.panRAR.1 > theta | binding$pvalue.F9.ATRA24.panRAR.1.F9.WT.panRAR.1 > theta | binding$pvalue.F9.ATRA48.panRAR.1.F9.WT.panRAR.1 > theta
+km <- kmeans(points[dynamic_rar,],9)
+clustering <- rep(0,length(dynamic_rar))
+clustering[dynamic_rar] <- km$cluster
+
+old.par <- par(no.readonly = TRUE)
+par(mfrow=c(3,3))
+profile(clustering == 1)
+profile(clustering == 2)
+profile(clustering == 3)
+profile(clustering == 4)
+profile(clustering == 5)
+profile(clustering == 6)
+profile(clustering == 7)
+profile(clustering == 8)
+profile(clustering == 9)
+par(old.par)
+@ 
+
+  \caption{Clustering of (normalized) coverage chipseq profiles with 9 classes for dynamic regions.}
+  \label{fig:cluster-dyn-9}
+\end{figure}
+
+
+\end{document}
