@@ -11,22 +11,7 @@ val load : string -> 'a
 
 val with_tmp_filename : (string -> unit) -> unit
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+val string_split : char -> string -> string array
+val string_split_noeps : char -> string -> string array
+val string_quote : string -> string
+val string_unquote : string -> string
