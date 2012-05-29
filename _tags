@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: dc65c3bb905b33ac9b87ad32ad2c989e)
+# DO NOT EDIT (digest: bb88b2ad4336f1057e8efe7966ec0226)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -15,9 +15,11 @@
 "_darcs": not_hygienic
 # Executable rarscript
 <src/rush.{native,byte}>: pkg_threads
+<src/rush.{native,byte}>: pkg_gsl
 <src/rush.{native,byte}>: pkg_biocaml
 <src/rush.{native,byte}>: pkg_batteries
 <src/*.ml{,i}>: pkg_threads
+<src/*.ml{,i}>: pkg_gsl
 <src/*.ml{,i}>: pkg_biocaml
 <src/*.ml{,i}>: pkg_batteries
 # OASIS_STOP

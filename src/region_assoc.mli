@@ -21,7 +21,7 @@ val range_pos : from:Range.t -> Range.t -> int
 (*   ('a * 'b * float) Enum.t *)
 
 val score :
-  (string * int) list ->
+  (string * int) array ->
   ('a -> string location) ->
   'a Enum.t ->
   ('b -> string location) ->

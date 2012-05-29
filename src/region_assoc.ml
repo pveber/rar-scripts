@@ -59,8 +59,11 @@ let score chrom_size fa a fb b =
   let a = List.of_enum a
   and b = List.of_enum b in
   let amap = LMap.of_enum (List.enum a /@ (fun x -> fa x, x)) in 
+  let control = 
+    let b = Array.of_list b in
+    Random_regions.uniform ~chrom_size fb b (Array.length b) in 
   let hist_real = histogram amap (List.enum b /@ fb)
-  and hist_rand = histogram amap (List.enum b /@ fb) in
+  and hist_rand = histogram amap control in
   print_histogram hist_real ;
   print_histogram hist_rand ;
   List.enum a

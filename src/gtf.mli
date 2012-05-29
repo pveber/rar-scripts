@@ -19,7 +19,7 @@ open Biocaml
 
 
 type item = {
-  loc : Location.t ;
+  loc : string Location.t ;
   strand : [`plus | `minus] option ;
   kind : [ `exon | `gene | `CDS | `start_codon | `stop_codon ] ;
   attr : (string * string) list

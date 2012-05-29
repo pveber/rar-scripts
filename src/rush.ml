@@ -2,13 +2,13 @@ open Batteries
 open Printf
 module LMap = Biocaml_genomeMap.LMap
 
-let chrom_info_file = Backup.file
-  "rush/ucsc/mm9/chrom_info"
-  (Ucsc.fetch_chrom_info `mm9)
+let chrom_size_file = Backup.file
+  "rush/ucsc/mm9/chrom_size"
+  (Ucsc.fetch_chrom_size `mm9)
 
-let chrom_info () = 
-  Ucsc.chrom_info_of_file (Backup.get chrom_info_file)
-  |> List.of_enum
+let chrom_size () = 
+  Ucsc.chrom_size_of_file (Backup.get chrom_size_file)
+  |> Array.of_enum
 
 (** release 63 of ensembl genes *)
 let gtf_file = Backup.file 
@@ -45,12 +45,28 @@ let closest_gene_from_peak =
       /@ Tsv.string_of_row
       |> File.write_lines path)
 
-let _ = 
-  Region_assoc.score (chrom_info ())
-    fst ((LMap.enum (Backup.get tss_map)) // (fun ((chr,_),_) -> chr = "chr10"))
-    identity (List.enum panRAR_peaks)
-  |> Enum.iter 
-      (fun (_,_,score) -> printf "%g\n%!" score)
+let gene_peak_assoc_score = 
+  Backup.file
+    "rush/chipseq/peaks/gene_peak_assoc_score.tsv"
+    (fun path ->
+      Region_assoc.score (chrom_size ())
+        fst ((LMap.enum (Backup.get tss_map)) // (fun ((chr,_),_) -> chr = "chr10"))
+        identity (List.enum panRAR_peaks)
+      /@ (fun (((_,tss_r),(transcript_id,gene_id)),(peak_chr, peak_r),score) -> [|
+        peak_chr ; 
+        string_of_int peak_r.Biocaml_range.lo ;
+        string_of_int peak_r.Biocaml_range.hi ;
+        transcript_id ; gene_id ;
+        string_of_int (Region_assoc.range_pos peak_r tss_r) ;
+        sprintf "%.2f" score |])
+      /@ Tsv.string_of_row
+      |> File.write_lines path)
+
+let () = ignore (Backup.get gene_peak_assoc_score)
+
+
+
+
 
 
 
