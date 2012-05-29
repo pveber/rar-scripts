@@ -1,4 +1,5 @@
 open Batteries
+open Printf
 open Biocaml
 open GenomeMap
 
@@ -15,29 +16,44 @@ let histogram_bounds = [
   10000; 20000; 50000; 100000 
 ]
    
+let range_overlap s s' = Range.(
+  let p s s' = (s.hi >= s'.lo) && (s.hi <= s'.hi) in 
+  p s s' || p s' s
+)
 
-let range_pos rx ry = min 0 (Range.gap rx ry)
+let range_pos ~from r = Range.(
+  if range_overlap from r then 0
+  else
+    let a, b = r.hi - from.lo, r.lo - from.hi in
+    if abs a < abs b then a else b
+)
 
 let position map ((_,rx) as loc_x) = 
-  let ((_,ry) as loc_y), _, _ = LMap.closest loc_x map in 
+  let (_,ry), _, _ = LMap.closest loc_x map in 
   range_pos rx ry
 
 let histogram map xs = 
   Enum.fold
-    (fun hist ((_,rx) as loc_x) -> 
+    (fun hist ((chr,rx) as loc_x) -> 
       try 
         let pos = position map loc_x in 
-        Histogram.increment hist pos 
+        Histogram.increment hist pos
       with Not_found -> hist)
     (Histogram.make compare histogram_bounds)
     xs
 
-let ( !? ) x f = Option.bind x f
+let ( |?> ) x f = Option.bind f x
 
 let histogram_count hist x = Histogram.(
-  (find_bin_index hist x) !? (count hist)
+  Option.map
+    (count hist)
+    (find_bin_index hist x)
 )
                
+let print_histogram hist = 
+  List.iter
+    (fun ((a,b),c) -> printf "%d %d %f\n%!" a b c)
+    (Histogram.to_list hist)
 
 let score chrom_size fa a fb b =
   let a = List.of_enum a
@@ -45,22 +61,28 @@ let score chrom_size fa a fb b =
   let amap = LMap.of_enum (List.enum a /@ (fun x -> fa x, x)) in 
   let hist_real = histogram amap (List.enum b /@ fb)
   and hist_rand = histogram amap (List.enum b /@ fb) in
+  print_histogram hist_real ;
+  print_histogram hist_rand ;
   List.enum a
-  /@ (fun (chra,ra) ->
+  /@ (fun a ->
+    let (chra,ra) = fa a in
     List.enum b
-    /@ (fun (chrb,rb) -> 
-      if chra <> chrb then Some 0.
+    //@ (fun b -> 
+      let (chrb,rb) = fb b in
+      if chra <> chrb then None
       else (
-        let pos = range_pos rx ry in
+        let pos = range_pos ra rb in
         match (histogram_count hist_real pos,
                histogram_count hist_rand pos) with
         | Some nreal, Some nrand -> 
             let r = (nreal -. nrand) /. nreal in 
-            if classify_float r = FP_normal then Some r
+            (* printf "%f\n%!" r ; *)
+            if classify_float r = FP_normal && r > 0. 
+            then Some (a,b,r)
             else None
         | _ -> None
-      ))
-  assert false
+      )))
+  |> Enum.concat
 
 
 

@@ -11,4 +11,4 @@ Executable rarscript
   Path:         src
   BuildDepends: threads, batteries, biocaml
   MainIs:       rush.ml
-  
+  CompiledObject: best

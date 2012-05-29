@@ -9,6 +9,9 @@ let shell s =
 let sh fmt = 
   Printf.ksprintf shell fmt
 
+let pipefail cmd1 cmd2 = 
+  shell (Printf.sprintf "exec 3>&1; s=$(exec 4>&1 >&3; { %s; echo $? >&4; } | %s) && exit $s" cmd1 cmd2);;
+
 let load fn = 
   let ic = open_in fn in
   let v  = Marshal.from_channel ic in
