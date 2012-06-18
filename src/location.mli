@@ -5,7 +5,13 @@ type 'a t = 'a * Range.t
 val make : 'a -> int -> int -> 'a t
 val size : 'a t -> int
 
+val relmove : int -> int -> 'a t -> 'a t
 val upstream : up:int -> down:int -> [`Sense | `Antisense] -> 'a t -> 'a t
+
+val intersects : 'a t -> 'a t -> bool
+
+(** String representation of a location, as <chr>:<start>-<end> *)
+val to_string : string t -> string
 
 (* (\* This file is part of guizmin. *)
 
@@ -41,8 +47,6 @@ val upstream : up:int -> down:int -> [`Sense | `Antisense] -> 'a t -> 'a t
 (* (\** [zoom l z] is a location of width [z *. float (Location.width l)] *\) *)
 (* val zoom : t -> float -> t *)
   
-(* (\** String representation of a location, as <chr>:<start>-<end> *\) *)
-(* val to_string : t -> string  *)
 (* val length : t -> int *)
   
 (* (\** Parses a string representation of a genomic location, of the *)

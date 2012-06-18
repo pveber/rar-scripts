@@ -11,6 +11,14 @@ let make chr st ed =
   ) ;
   (chr, Range.make st ed)
 
+let relmove a b (chr, { Range.lo ; hi }) = 
+  (chr, Range.make (lo + a) (hi + b))
+
+let intersects (chr_a,r_a) (chr_b,r_b) =
+  let p r r' = Range.((r.hi >= r'.lo) && (r.hi <= r'.hi)) in
+  chr_a = chr_b && (p r_a r_b || p r_a r_b)
+
+
 let upstream ~up ~down strand (chr, { Range.lo ; hi }) =
   match strand with
     | `Sense ->
@@ -19,6 +27,9 @@ let upstream ~up ~down strand (chr, { Range.lo ; hi }) =
 	make chr (max 0 (hi - down)) (max 0 (hi + up))
 
 let size (_,r) = Range.size r
+
+let to_string (chr, { Range.lo ; hi }) = 
+  sprintf "%s:%d-%d" chr lo hi
 
 (* (\* This file is part of guizmin. *)
 
@@ -43,7 +54,6 @@ let size (_,r) = Range.size r
 (*   st : int ; *)
 (*   ed : int *)
 (* } *)
-(* let to_string l = sprintf "%s:%d-%d" l.chr l.st l.ed *)
 (* let move l st ed = { l with st = st ; ed = ed } *)
 (* let relmove l st ed = { l with st = l.st + st ; ed = l.ed + ed } *)
 (* let relative l st ed = { l with st = l.st + st ; ed = l.st + ed } *)
