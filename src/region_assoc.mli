@@ -11,26 +11,50 @@ val closest :
     [map]. *)
 
 val neighbours :
-  ('a -> string location) ->
+  ('a -> 'chr location) ->
   int ->
-  (string, 'b) LMap.t ->
-  'a Enum.t -> ('a * (string location * 'b) array) Enum.t 
-(** [neighbours f dmax map a] returns an enumeration mapped from [a]
-    where each membre of [a] is annotated with all elements in [map]
-    not further than [dmax] bp. *)
+  ('chr, 'b) LMap.t ->
+  'a -> ('chr location * 'b) array
+(** [neighbours f dmax map e] returns an annotation of [e] with all
+    elements in [map] not further than [dmax] bp. *)
 
 
 val range_pos : from:Range.t -> Range.t -> int
+val stranded_range_pos : from:(Range.t * [`Sense | `Antisense]) -> Range.t -> int
 
 val score :
   ('chr * int) array ->
-  ('a -> 'chr location) ->
-  'a Enum.t ->
-  ('b -> 'chr location) ->
-  'b Enum.t ->
+  ('a -> 'chr location) -> 'a Enum.t ->
+  ('b -> 'chr location) -> 'b Enum.t ->
   ('a * 'b * float) Enum.t
+(** [score fa a fb b] returns an enumeration of all pairs of a's and
+    b's weighted by a score which reflects how usual the position of b
+    with respect to a is, compared to a control *)
 
-    
+(**TODO 
+
+val score_stranded_version :
+   ('chr * int) array ->
+   ('a -> 'chr location * [`Sense | `Antisense]) -> 'a Enum.t ->
+   ('b -> 'chr location) -> 'b Enum.t ->
+   ('a * 'b * float) Enum.t
+
+*)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

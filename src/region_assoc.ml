@@ -10,14 +10,9 @@ let closest f map regions =
   in 
   Enum.map aux regions
 
-let neighbours f dmax map regions =
-  let aux x = 
-    let loc_x = Location.relmove (-dmax) dmax (f x) in
-    x,
-    LMap.intersecting_elems loc_x map |> Array.of_enum 
-  in 
-  Enum.map aux regions
-  
+let neighbours f dmax map x =
+  let loc_x = Location.relmove (-dmax) dmax (f x) in
+  LMap.intersecting_elems loc_x map |> Array.of_enum 
 
 
 let histogram_bounds = [ 
@@ -37,6 +32,11 @@ let range_pos ~from r = Range.(
     let a, b = r.hi - from.lo, r.lo - from.hi in
     if abs a < abs b then a else b
 )
+
+let stranded_range_pos ~from r = 
+  let p = range_pos ~from:(fst from) r in
+  if snd from = `Sense then p else (- p)
+
 
 let position map ((_,rx) as loc_x) = 
   let (_,ry), _, _ = LMap.closest loc_x map in 

@@ -6,6 +6,12 @@ val make : 'a -> int -> int -> 'a t
 val size : 'a t -> int
 
 val relmove : int -> int -> 'a t -> 'a t
+
+val center : 'a t -> 'a t
+(** [center l] is the tiniest location at the center of [l] that is
+    exactly at the same distance from both ends of [l]. It is of
+    length 1 if [l] has an odd length and 2 otherwise. *)
+
 val upstream : up:int -> down:int -> [`Sense | `Antisense] -> 'a t -> 'a t
 
 val intersects : 'a t -> 'a t -> bool

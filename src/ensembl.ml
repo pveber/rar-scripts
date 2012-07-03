@@ -36,12 +36,16 @@ let stranded_location_of_gtf_row row = Gtf.(
 let tss_map_of_gtf gtf = Gtf.(
   gtf
   // (fun row -> row.kind = `exon && List.assoc "exon_number" row.attr = "1")
-  /@ (fun row -> stranded_location_of_gtf_row row, (List.assoc "gene_id" row.attr, 
-                                                    List.assoc "transcript_id" row.attr))
-  /@ (fun ((loc,strand), gene_id) -> 
-    let loc = Location.upstream ~up:1 ~down:0 strand loc in 
-    printf "%s %s %s\n" (fst gene_id) (snd gene_id) (Location.to_string loc) ;
-    loc, gene_id)
+  /@ (fun row -> row.loc, (List.assoc "gene_id" row.attr, 
+                           List.assoc "transcript_id" row.attr,
+                           match row.strand with
+                           | Some `plus -> `Sense
+                           | Some `minus -> `Antisense
+                           | _ -> assert false
+  ))
+  /@ (fun (loc, ((_,_,dir) as transcript)) -> 
+    let loc = Location.upstream ~up:1 ~down:0 dir loc in 
+    loc, transcript)
   |> GenomeMap.LMap.of_enum
 )
 
