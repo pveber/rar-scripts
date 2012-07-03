@@ -9,6 +9,6 @@ BuildTools:   ocamlbuild
 
 Executable rarscript
   Path:         src
-  BuildDepends: threads, gsl, batteries, biocaml
+  BuildDepends: threads, gsl, batteries, biocaml, guizmin
   MainIs:       rush.ml
   CompiledObject: byte

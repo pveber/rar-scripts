@@ -3,5 +3,12 @@
 \usepackage{fullpage}
 
 \begin{document}
-Started!
+TODO:
+\begin{itemize}
+\item definition of binding regions
+\end{itemize}
+
+\section{Associating binding regions to genes}
+
+
 \end{document}

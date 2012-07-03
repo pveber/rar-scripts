@@ -29,12 +29,3 @@ val score :
   ('b -> 'chr location) ->
   'b Enum.t ->
   ('a * 'b * float) Enum.t
-
-    
-
-
-
-
-
-
-
