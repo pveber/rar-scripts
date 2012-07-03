@@ -4,7 +4,7 @@ Version:     2.0
 Synopsis:    RAR power
 Authors:     me
 License:     GPL-3.0
-Plugins:     META (0.3)
+Plugins:     META (0.3), DevFiles (0.3)
 BuildTools:   ocamlbuild
 
 Executable rarscript

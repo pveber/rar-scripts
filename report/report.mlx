@@ -1,0 +1,7 @@
+\documentclass{report}
+
+\usepackage{fullpage}
+
+\begin{document}
+Started!
+\end{document}
