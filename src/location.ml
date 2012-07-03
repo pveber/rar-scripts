@@ -11,6 +11,11 @@ let make chr st ed =
   ) ;
   (chr, Range.make st ed)
 
+let center (chr, { Range.lo ; hi }) =
+  let c = (lo + hi) / 2 in
+  chr,
+  Range.make c (if (lo + hi) mod 2 = 0 then c else c + 1)
+
 let relmove a b (chr, { Range.lo ; hi }) = 
   (chr, Range.make (lo + a) (hi + b))
 
