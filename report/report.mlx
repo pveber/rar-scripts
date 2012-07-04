@@ -11,7 +11,7 @@
 
 open Batteries;;
 open Guizmin;;
-open Rarlib
+open Rarlib;;
 ##
 \documentclass{report}
 
@@ -28,7 +28,7 @@ TODO:
 
 \begin{figure}
   \centering
-  \includegraphics{##= let File f = eval App_region_assoc.(rel_pos_bregions_fig app) in f ##}
+  \includegraphics[height=10cm]{##= let File f = eval App_region_assoc.(rel_pos_bregions_fig app) in f ##}
   \caption{Relative position of binding regions with respect to their closest TSS. The position of a region is that of its center.}
   \label{fig:relpos-regions-wrt-closest-tss}
 \end{figure}
