@@ -1,6 +1,22 @@
+##
+#use "topfind";;
+#require "gsl";;
+#require "R.grDevices";;
+#require "R.graphics";;
+#require "batteries";;
+#require "guizmin";;
+#require "biocaml";;
+#directory "_build/src";;
+#load "rarlib.cma";;
+
+open Batteries;;
+open Guizmin;;
+open Rarlib
+##
 \documentclass{report}
 
 \usepackage{fullpage}
+\usepackage{pgf}
 
 \begin{document}
 TODO:
@@ -10,5 +26,11 @@ TODO:
 
 \section{Associating binding regions to genes}
 
+\begin{figure}
+  \centering
+  \includegraphics{##= let File f = eval App_region_assoc.(rel_pos_bregions_fig app) in f ##}
+  \caption{Relative position of binding regions with respect to their closest TSS. The position of a region is that of its center.}
+  \label{fig:relpos-regions-wrt-closest-tss}
+\end{figure}
 
 \end{document}

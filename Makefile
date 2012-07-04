@@ -37,10 +37,11 @@ setup.data:
 
 # OASIS_STOP
 
-report/report.pdf: report/report.mlx
+report: report/report.mlx
+	camlmix -o report/report.tex report/report.mlx && \
 	cd report && \
-        camlmix -clean -o report.tex report.mlx && \
 	pdflatex report.tex && \
 	pdflatex report.tex && \
 	rm -f *.aux *.log
 
+.PHONY: report

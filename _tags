@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 3576e4ddd35e588c13848502bbfd0ab3)
+# DO NOT EDIT (digest: c913e10503b01e7edf07a30a1e3fded0)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -13,16 +13,37 @@
 ".git": not_hygienic
 "_darcs": -traverse
 "_darcs": not_hygienic
+# Library rarlib
+"src/rarlib.cmxs": use_rarlib
+"src/app_region_assoc.cmx": for-pack(Rarlib)
+"src/bed.cmx": for-pack(Rarlib)
+"src/gtf.cmx": for-pack(Rarlib)
+"src/motif_annotation.cmx": for-pack(Rarlib)
+"src/random_regions.cmx": for-pack(Rarlib)
+"src/resources.cmx": for-pack(Rarlib)
+"src/tsv.cmx": for-pack(Rarlib)
+"src/backup.cmx": for-pack(Rarlib)
+"src/ensembl.cmx": for-pack(Rarlib)
+"src/location.cmx": for-pack(Rarlib)
+"src/nhre.cmx": for-pack(Rarlib)
+"src/region_assoc.cmx": for-pack(Rarlib)
+"src/rnaseq_table.cmx": for-pack(Rarlib)
+"src/sle.cmx": for-pack(Rarlib)
+"src/ucsc.cmx": for-pack(Rarlib)
 # Executable rarscript
 "src/rush.byte": pkg_threads
 "src/rush.byte": pkg_guizmin
 "src/rush.byte": pkg_gsl
 "src/rush.byte": pkg_biocaml
 "src/rush.byte": pkg_batteries
+"src/rush.byte": pkg_R.graphics
+"src/rush.byte": pkg_R.grDevices
 <src/*.ml{,i}>: pkg_threads
 <src/*.ml{,i}>: pkg_guizmin
 <src/*.ml{,i}>: pkg_gsl
 <src/*.ml{,i}>: pkg_biocaml
 <src/*.ml{,i}>: pkg_batteries
+<src/*.ml{,i}>: pkg_R.graphics
+<src/*.ml{,i}>: pkg_R.grDevices
 # OASIS_STOP
 true: annot

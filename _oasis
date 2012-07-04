@@ -9,6 +9,14 @@ BuildTools:   ocamlbuild
 
 Executable rarscript
   Path:         src
-  BuildDepends: threads, gsl, batteries, biocaml, guizmin
+  BuildDepends: threads, gsl, batteries, biocaml, guizmin, R.graphics, R.grDevices
   MainIs:       rush.ml
   CompiledObject: byte
+
+Library rarlib
+  Path:         src
+  Pack:         true
+  BuildDepends: threads, gsl, batteries, biocaml, guizmin, R.graphics, R.grDevices
+  Modules:      App_region_assoc, Bed, Gtf, Motif_annotation,
+                Random_regions, Resources, Tsv, Backup, Ensembl, Location, Nhre,
+                Region_assoc, Rnaseq_table, Sle, Ucsc

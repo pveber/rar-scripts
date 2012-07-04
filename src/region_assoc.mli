@@ -31,7 +31,7 @@ val score :
     b's weighted by a score which reflects how usual the position of b
     with respect to a is, compared to a control *)
 
-(**TODO 
+(** TODO 
 
 val score_stranded_version :
    ('chr * int) array ->
@@ -40,26 +40,3 @@ val score_stranded_version :
    ('a * 'b * float) Enum.t
 
 *)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> 88f37a9a9b9dfe392f2084c5c2cd205bafffcdee

@@ -29,7 +29,7 @@ let () =
 (* let () = *)
 (*   ignore (Backup.get closest_gene_from_region) *)
 
-let _ = Guizmin.eval App_region_assoc.(relative_position_of_bindings_wrt_gene_tss_fig app)
+let _ = Guizmin.eval App_region_assoc.app
 
 
 

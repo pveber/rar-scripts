@@ -1,0 +1,10 @@
+# OASIS_START
+# DO NOT EDIT (digest: b8aead62ce226b31b691516097f56f66)
+version = "2.0"
+description = "RAR power"
+requires = "threads gsl batteries biocaml guizmin R.graphics R.grDevices"
+archive(byte) = "rarlib.cma"
+archive(native) = "rarlib.cmxa"
+exists_if = "rarlib.cma"
+# OASIS_STOP
+
