@@ -1,10 +1,11 @@
 open Batteries
+open Guizmin_bioinfo.MBSchema
 
 val uniform : 
   ?seed:int ->
-  chrom_size:('a * int) array -> 
-  ('b -> 'a Location.t) ->
-  'b array -> int -> 'a Location.t Enum.t
+  chrom_size:(string * int) array -> 
+  ('b -> Location.t) ->
+  'b array -> int -> Location.t Enum.t
 
 
 

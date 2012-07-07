@@ -6,6 +6,7 @@
 #require "batteries";;
 #require "guizmin";;
 #require "biocaml";;
+#require "guizmin.bioinfo";;
 #directory "_build/src";;
 #load "rarlib.cma";;
 

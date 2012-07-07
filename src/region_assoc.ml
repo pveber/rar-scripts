@@ -2,6 +2,7 @@ open Batteries
 open Printf
 open Biocaml
 open GenomeMap
+open Guizmin_bioinfo.MBSchema
 
 let closest f map regions = 
   let aux x = 
@@ -21,26 +22,10 @@ let histogram_bounds = [
   10000; 20000; 50000; 100000 
 ]
    
-let range_overlap s s' = Range.(
-  let p s s' = (s.hi >= s'.lo) && (s.hi <= s'.hi) in 
-  p s s' || p s' s
-)
 
-let range_pos ~from r = Range.(
-  if range_overlap from r then 0
-  else
-    let a, b = r.hi - from.lo, r.lo - from.hi in
-    if abs a < abs b then a else b
-)
-
-let stranded_range_pos ~from r = 
-  let p = range_pos ~from:(fst from) r in
-  if snd from = `Sense then p else (- p)
-
-
-let position map ((_,rx) as loc_x) = 
-  let (_,ry), _, _ = LMap.closest loc_x map in 
-  range_pos rx ry
+let position map loc_x = 
+  let loc_y, _, _ = LMap.closest loc_x map in 
+  Location.position ~from:loc_x loc_y
 
 let histogram map xs = 
   Enum.fold
@@ -78,13 +63,13 @@ let score chrom_size fa a fb b =
   print_histogram hist_rand ;
   List.enum a
   /@ (fun a ->
-    let (chra,ra) = fa a in
+    let loc_a = fa a in
     List.enum b
-    //@ (fun b -> 
-      let (chrb,rb) = fb b in
-      if chra <> chrb then None
+    //@ Location.(fun b -> 
+      let loc_b = fb b in
+      if chr loc_a  <> chr loc_b then None
       else (
-        let pos = range_pos ra rb in
+        let pos = position loc_a loc_b in
         match (histogram_count hist_real pos,
                histogram_count hist_rand pos) with
         | Some nreal, Some nrand -> 

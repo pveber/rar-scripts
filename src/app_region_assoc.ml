@@ -1,27 +1,48 @@
 open Batteries
 open Guizmin
+open Guizmin_bioinfo.MBSchema
 
 type output
 
 let closest_gene_for_each_bregion () = Resources.(
   (panRAR_regions ()
       |> Region_assoc.closest identity (Backup.get tss_map) )
-  /@ (fun ((_,r_region) as region, ((_,r_tss),(_,_,dir)) as transcript) -> 
-    let (_,r_region_center) = Location.center region in
-    let pos = Region_assoc.stranded_range_pos ~from:(r_tss, dir) r_region_center in
+  /@ (fun (region, (_,transcript)) -> 
+    let region_center = Location.center region in
+    let pos = Transcript.position2tss transcript region_center in
     (region, transcript, pos))
 )
 
-let distance_breaks = [ -100000;-50000;-20000;-10000;-5000;-2000;-1000;0;1000;2000;5000;10000;20000;50000;100000]
-let r_distance_breaks = 
-  `l (R.floats (List.map Pervasives.float distance_breaks))
 
-let rel_pos_bregions_fig_path = 
-  "relative_position_of_bindings_wrt_closest_tss.pdf"
+(** for each gene, find a binding region whose to distance to one of
+    the gene tss is minimal *)
+let closest_bregion_for_each_gene () =
 
-let rel_pos_bregions_fig_script = "\
-rel_pos_bregions_fig <- function(path,
-"
+  (* an accumulator that keeps the closest transcript seen so far for each gene *)
+  let accu = Biocaml_accu.create 
+    None identity
+    (fun (transcript, (bregion,bregion_id)) current -> 
+      let current_is_closer = match current with
+        | None -> false 
+        | Some (transcript',_,_) -> 
+            let d  = Location.dist (Transcript.tss transcript)  bregion
+            and d' = Location.dist (Transcript.tss transcript') bregion in
+            d' < d
+      in
+      if current_is_closer then current
+      else Some (transcript,bregion,bregion_id))
+  in 
+  let bregions_map = Resources.panRAR_region_summits_map () in 
+  let transcript2closest_bregion = 
+    Region_assoc.closest Transcript.tss bregions_map (Ensembl.transcripts_enum (Resources.gtf ())) 
+  in
+  Enum.iter 
+    (fun ((transcript, _) as x) -> Biocaml_accu.add accu transcript.Transcript.gene_id x)
+    transcript2closest_bregion ;
+  let hastbl = Hashtbl.of_enum (Biocaml_accu.enum accu) in
+  
+  assert false
+
 
 let job_script = "\
 job <- function(path, closest_tss_rel_pos) {
@@ -72,7 +93,7 @@ let app = Guizmin.d0 ("rar.app_region_assoc[r5]", []) (fun path ->
 )
 
 let rel_pos_bregions_fig app =
-  select app rel_pos_bregions_fig_path
+  select app "relative_position_of_bindings_wrt_closest_tss.pdf"
 
 
 

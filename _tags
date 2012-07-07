@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: c913e10503b01e7edf07a30a1e3fded0)
+# DO NOT EDIT (digest: aac2d6caa4dbcb2277a4320886edded3)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -24,7 +24,6 @@
 "src/tsv.cmx": for-pack(Rarlib)
 "src/backup.cmx": for-pack(Rarlib)
 "src/ensembl.cmx": for-pack(Rarlib)
-"src/location.cmx": for-pack(Rarlib)
 "src/nhre.cmx": for-pack(Rarlib)
 "src/region_assoc.cmx": for-pack(Rarlib)
 "src/rnaseq_table.cmx": for-pack(Rarlib)
@@ -32,6 +31,7 @@
 "src/ucsc.cmx": for-pack(Rarlib)
 # Executable rarscript
 "src/rush.byte": pkg_threads
+"src/rush.byte": pkg_guizmin.bioinfo
 "src/rush.byte": pkg_guizmin
 "src/rush.byte": pkg_gsl
 "src/rush.byte": pkg_biocaml
@@ -39,6 +39,7 @@
 "src/rush.byte": pkg_R.graphics
 "src/rush.byte": pkg_R.grDevices
 <src/*.ml{,i}>: pkg_threads
+<src/*.ml{,i}>: pkg_guizmin.bioinfo
 <src/*.ml{,i}>: pkg_guizmin
 <src/*.ml{,i}>: pkg_gsl
 <src/*.ml{,i}>: pkg_biocaml

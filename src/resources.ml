@@ -2,6 +2,7 @@
 
 open Batteries
 open Printf
+open Guizmin_bioinfo.MBSchema
 module LMap = Biocaml_genomeMap.LMap
 
 (** {5 Genes and genome definition} *)
@@ -77,14 +78,14 @@ let closest_gene_from_region =
     (fun path -> 
       (panRAR_regions ()
           |> Region_assoc.closest identity (Backup.get tss_map))
-      /@ (fun ((chr_region,r_region) as region, ((_,r_tss),(gene_id,_,dir))) -> 
-        let (_,r_region_center) = Location.center region in 
+      /@ (fun (region, (tss,transcript)) -> 
+        let region_center = Location.center region in 
         [| 
-          chr_region ; 
-          string_of_int r_region.Biocaml_range.lo ;
-          string_of_int r_region.Biocaml_range.hi ;
-          gene_id ;
-          string_of_int (Region_assoc.stranded_range_pos ~from:(r_tss, dir) r_region_center) 
+          Location.chr region ; 
+          string_of_int (Location.st region) ;
+          string_of_int (Location.ed region) ;
+          transcript.Transcript.gene_id ;
+          string_of_int (Transcript.position2tss transcript region_center)
         |])
       /@ Tsv.string_of_row
       |> File.write_lines path)
@@ -96,12 +97,13 @@ let gene_region_assoc_score =
       Region_assoc.score (chrom_size ())
         fst (LMap.enum (Backup.get tss_map))
         identity (panRAR_regions ())
-      /@ (fun (((_,tss_r),(transcript_id,gene_id,dir)),(region_chr, region_r),score) -> [|
-        region_chr ; 
-        string_of_int region_r.Biocaml_range.lo ;
-        string_of_int region_r.Biocaml_range.hi ;
-        transcript_id ; gene_id ;
-        string_of_int (Region_assoc.range_pos region_r tss_r) ;
+      /@ Location.(fun ((tss,transcript),region,score) -> [|
+        chr region ; 
+        string_of_int (st region) ;
+        string_of_int (ed region) ;
+        transcript.Transcript.id ; 
+        transcript.Transcript.gene_id ;
+        string_of_int (position ~from:region (Transcript.tss transcript)) ;
         sprintf "%.2f" score |])
       /@ Tsv.string_of_row
       |> File.write_lines path)
@@ -116,7 +118,7 @@ let rnaseq_table () =
 (** A hashtable that gives for each gene_id the corresponding transcripts and their TSS *)
 let gene2transcripts () = 
   LMap.enum (Backup.get tss_map)
-  /@ (fun (tss_loc, (gene_id, transcript_id, dir)) -> gene_id, (tss_loc, transcript_id, dir))
+  /@ (fun (tss_loc, transcript) -> transcript.Transcript.gene_id, transcript)
   |> Biocaml_accu.relation
 
 
@@ -133,8 +135,8 @@ let genes_with_neighbouring_regions () =
       Some (row,
             (Hashtbl.find g2t row.Rnaseq_table.ensembl_gene_id
                 |> List.enum)
-            /@ (fun (tss_loc, transcript_id,_) -> 
-              Region_assoc.neighbours identity 10000 regions_map tss_loc
+            /@ (fun transcript -> 
+              Region_assoc.neighbours identity 10000 regions_map (Transcript.tss transcript)
                    |> Array.enum)
             |> Enum.concat
             |> Set.of_enum)

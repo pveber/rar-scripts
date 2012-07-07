@@ -1,4 +1,5 @@
 open Batteries
+open Guizmin_bioinfo.MBSchema
 
 let uniform ?seed ~chrom_size loc items n = 
   let rng = Gsl_rng.make (Gsl_rng.default ()) in

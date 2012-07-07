@@ -16,6 +16,7 @@
 open Batteries
 open Printf
 open Sle
+open Guizmin_bioinfo.MBSchema
 
 let option f = function
     None -> "."
@@ -46,7 +47,7 @@ let unparse_line ~seqname ~source ~feature ~start ~end_
 
 
 type item = {
-  loc : string Location.t ;
+  loc : Location.t ;
   strand : [`plus | `minus] option ;
   kind : [ `exon | `gene | `CDS | `start_codon | `stop_codon ] ;
   attr : (string * string) list

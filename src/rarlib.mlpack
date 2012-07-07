@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8ec8476db7a2f7da50aa4b20b5b4dfbd)
+# DO NOT EDIT (digest: 8f49ce0388539a27b0b0b3325e12000b)
 App_region_assoc
 Bed
 Gtf
@@ -9,7 +9,6 @@ Resources
 Tsv
 Backup
 Ensembl
-Location
 Nhre
 Region_assoc
 Rnaseq_table

@@ -1,6 +1,7 @@
 open Batteries
 open Printf
 open Biocaml
+open Guizmin_bioinfo.MBSchema
 
 type species = [
 | `mus_musculus
@@ -33,19 +34,40 @@ let stranded_location_of_gtf_row row = Gtf.(
     | _ -> raise (Invalid_argument "Ensembl_gff.stranded_location_of_row")
 )
 
+let attr x row =
+  List.assoc x row.Gtf.attr
+
+let exon_number = attr "exon_number"
+let gene_id = attr "gene_id"
+let transcript_id = attr "transcript_id"
+
+let transcripts_enum_aux rows = 
+  match List.of_enum rows with
+  | [] -> raise (Invalid_argument "Ensembl.transcripts_enum")
+  | h :: _ as l ->
+      { Transcript.id = transcript_id h ;
+        gene_id = gene_id h ;
+        strand = (match h.Gtf.strand with
+                  | Some `plus -> `Sense
+                  | Some `minus -> `Antisense
+                  | _ -> assert false) ;
+        exons = (
+          let compare_exons r1 r2 = 
+            compare (exon_number r1) (exon_number r2) in
+          let sorted_rows = List.sort compare_exons l in
+          List.map (fun r -> r.Gtf.loc) sorted_rows
+        ) }
+
+
+let transcripts_enum gtf = Gtf.(
+  (gtf // (fun row -> row.kind = `exon))
+  |> Enum.group (fun row -> List.assoc "transcript_id" row.attr)
+  |> Enum.map transcripts_enum_aux
+)
+
 let tss_map_of_gtf gtf = Gtf.(
-  gtf
-  // (fun row -> row.kind = `exon && List.assoc "exon_number" row.attr = "1")
-  /@ (fun row -> row.loc, (List.assoc "gene_id" row.attr, 
-                           List.assoc "transcript_id" row.attr,
-                           match row.strand with
-                           | Some `plus -> `Sense
-                           | Some `minus -> `Antisense
-                           | _ -> assert false
-  ))
-  /@ (fun (loc, ((_,_,dir) as transcript)) -> 
-    let loc = Location.upstream ~up:1 ~down:0 dir loc in 
-    loc, transcript)
+  transcripts_enum gtf
+  /@ (fun x -> Transcript.tss x, x)
   |> GenomeMap.LMap.of_enum
 )
 

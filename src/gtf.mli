@@ -16,10 +16,10 @@
 open Batteries
 open Sle
 open Biocaml
-
+open Guizmin_bioinfo.MBSchema
 
 type item = {
-  loc : string Location.t ;
+  loc : Location.t ;
   strand : [`plus | `minus] option ;
   kind : [ `exon | `gene | `CDS | `start_codon | `stop_codon ] ;
   attr : (string * string) list
