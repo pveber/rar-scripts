@@ -72,23 +72,6 @@ let panRAR_regions_motif_annotation =
 
 
 (** {5 Closest gene from region} *)
-let closest_gene_from_region =
-  Backup.file
-    "rush/chipseq/regions/closest_gene.tsv"
-    (fun path -> 
-      (panRAR_regions ()
-          |> Region_assoc.closest identity (Backup.get tss_map))
-      /@ (fun (region, (tss,transcript)) -> 
-        let region_center = Location.center region in 
-        [| 
-          Location.chr region ; 
-          string_of_int (Location.st region) ;
-          string_of_int (Location.ed region) ;
-          transcript.Transcript.gene_id ;
-          string_of_int (Transcript.position2tss transcript region_center)
-        |])
-      /@ Tsv.string_of_row
-      |> File.write_lines path)
 
 let gene_region_assoc_score = 
   Backup.file

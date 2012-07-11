@@ -72,6 +72,17 @@ let tss_map_of_gtf gtf = Gtf.(
 )
 
 
+let genes_enum gtf =
+  let gene_make (id, transcripts) = {
+    Gene.id ; aliases = [] ; transcripts
+  } in
+  transcripts_enum gtf /@ (fun x -> x.Transcript.gene_id, x)
+  |> Accu.relation 
+  |> Enum.map gene_make
+
+
+
+
 
 
 

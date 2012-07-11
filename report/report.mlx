@@ -13,23 +13,59 @@
 open Batteries;;
 open Guizmin;;
 open Rarlib;;
+
+let path x = 
+  let File f = eval x in
+  f
 ##
 \documentclass{report}
 
+\usepackage{amsthm}
 \usepackage{fullpage}
 \usepackage{pgf}
+
+\newtheorem{def}{Definition}
 
 \begin{document}
 TODO:
 \begin{itemize}
-\item definition of binding regions
+\item definition of expression classes
+\item procedure de sélection des seuils RAR/RXR
 \end{itemize}
+
+\section{Determination of binding regions}
+Each ChIP-seq sample yields a collection of peaks and it is not
+straightforward to follow the time course of a single peak: one would
+have to match peaks between samples (their position may vary, some may
+appear/disappear, etc ...). Our approach is to use peaks from all
+samples together to determine a fixed set of genomic regions where we
+can detect binding events. These binding regions are considered as a
+genomic feature (like genes) and do not depend on one particular
+condition anymore, so one can study their coverage by sequencing data
+across several conditions.
+
+More formally, what we will thereafter call \emph{binding regions} are
+the genomic locations defined as follows:
+\begin{enumerate}
+\item compute peaks with MACS for each sample, with a really
+  permissive threshold
+\item consider the set of positions on the genome which are the summit
+  of a peak in at least one condition (MACS is pretty good at
+  indicating the summit of a peak, it is shown in their paper that it
+  is strongly correlated with the occurrence of the expected sequence
+  motif)
+\item define a link between any two summits that are closer to 100bp
+\item compute connected components of this graph
+\item define, for each connected component, a \emph{binding region},
+  as a location of 500bp wide centered at the mean of the summits in
+  the connected component
+\end{enumerate}
 
 \section{Associating binding regions to genes}
 
 \begin{figure}
   \centering
-  \includegraphics[height=10cm]{##= let File f = eval App_region_assoc.(rel_pos_bregions_fig app) in f ##}
+  \includegraphics[height=10cm]{##= path App_region_assoc.(rel_pos_bregions_fig app) ##}
   \caption{Relative position of binding regions with respect to their closest TSS. The position of a region is that of its center.}
   \label{fig:relpos-regions-wrt-closest-tss}
 \end{figure}

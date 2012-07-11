@@ -17,6 +17,8 @@ val transcripts_enum : Gtf.item Enum.t -> Transcript.t Enum.t
 val tss_map_of_gtf : Gtf.item Enum.t -> (string, Transcript.t) LMap.t
 (** annotation is gene_id, transcript_id *)
 
+val genes_enum : Gtf.item Enum.t -> Gene.t Enum.t
+
 
 
 

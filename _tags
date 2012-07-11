@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: aac2d6caa4dbcb2277a4320886edded3)
+# DO NOT EDIT (digest: fd3fe02e7c03797598586626bf355397)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -30,14 +30,14 @@
 "src/sle.cmx": for-pack(Rarlib)
 "src/ucsc.cmx": for-pack(Rarlib)
 # Executable rarscript
-"src/rush.byte": pkg_threads
-"src/rush.byte": pkg_guizmin.bioinfo
-"src/rush.byte": pkg_guizmin
-"src/rush.byte": pkg_gsl
-"src/rush.byte": pkg_biocaml
-"src/rush.byte": pkg_batteries
-"src/rush.byte": pkg_R.graphics
-"src/rush.byte": pkg_R.grDevices
+<src/rush.{native,byte}>: pkg_threads
+<src/rush.{native,byte}>: pkg_guizmin.bioinfo
+<src/rush.{native,byte}>: pkg_guizmin
+<src/rush.{native,byte}>: pkg_gsl
+<src/rush.{native,byte}>: pkg_biocaml
+<src/rush.{native,byte}>: pkg_batteries
+<src/rush.{native,byte}>: pkg_R.graphics
+<src/rush.{native,byte}>: pkg_R.grDevices
 <src/*.ml{,i}>: pkg_threads
 <src/*.ml{,i}>: pkg_guizmin.bioinfo
 <src/*.ml{,i}>: pkg_guizmin

@@ -11,7 +11,7 @@ Executable rarscript
   Path:         src
   BuildDepends: threads, gsl, batteries, biocaml, guizmin, guizmin.bioinfo, R.graphics, R.grDevices
   MainIs:       rush.ml
-  CompiledObject: byte
+  CompiledObject: best
 
 Library rarlib
   Path:         src

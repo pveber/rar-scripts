@@ -44,4 +44,11 @@ report: report/report.mlx
 	pdflatex report.tex && \
 	rm -f *.aux *.log
 
-.PHONY: report
+prereport: report/prereport.mlx
+	camlmix -o report/prereport.tex report/prereport.mlx && \
+	cd report && \
+	pdflatex prereport.tex && \
+	pdflatex prereport.tex && \
+	rm -f *.aux *.log
+
+.PHONY: report prereport

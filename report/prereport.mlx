@@ -1,0 +1,89 @@
+##
+#use "topfind";;
+#require "gsl";;
+#require "R.grDevices";;
+#require "R.graphics";;
+#require "batteries";;
+#require "guizmin";;
+#require "biocaml";;
+#require "guizmin.bioinfo";;
+#directory "_build/src";;
+#load "rarlib.cma";;
+
+open Batteries;;
+open Guizmin;;
+open Rarlib;;
+
+let path x = 
+  let File f = eval x in
+  f
+##
+\documentclass{report}
+
+\usepackage{amsthm}
+\usepackage{fullpage}
+\usepackage{pgf}
+\usepackage{subfigure}
+
+\newtheorem{definition}{Definition}
+
+\begin{document}
+TODO:
+\begin{itemize}
+\item definition of binding regions
+\end{itemize}
+
+\section{Associating binding regions to genes}
+
+\begin{figure}
+  \centering
+  \includegraphics[height=10cm]{##= path App_region_assoc.(fig_rel_pos_bregions app) ##}
+  \caption{Relative position of the binding regions with respect to
+    their closest TSS. The position of a region is that of its
+    center.}
+  \label{fig:relpos-region-wrt-closest-tss}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[height=10cm]{##= path App_region_assoc.(fig_rel_pos_closest_bregion app) ##}
+  \caption{For all genes, relative position of the closest binding
+    region. The distance between a gene and region is here defined as
+    the minimal distance between the center of the region and one of
+    the gene's transcripts. Genes on chromosomes that do not have any
+    binding region are excluded.}
+  \label{fig:relpos-closest-bregion}
+\end{figure}
+
+
+\begin{figure}
+  \centering
+  \includegraphics[height=10cm]{##= path App_region_assoc.(fig_expr_class_dist_wrt_closest_bregion_pos app) ##}
+  \caption{Expression class distribution for genes as a function of
+    the position of the closest binding region. Genes on chromosomes
+    that do not have any binding region are excluded.}
+  \label{fig:expr-class-wrt-closest-region}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \subfigure[6h]{\includegraphics[height=7cm]{##= path App_region_assoc.(fig_expr_class_dist_wrt_closest_bregion_pos_6H app) ##}}
+  \subfigure[12h]{\includegraphics[height=7cm]{##= path App_region_assoc.(fig_expr_class_dist_wrt_closest_bregion_pos_12H app) ##}}
+  \subfigure[24h]{\includegraphics[height=7cm]{##= path App_region_assoc.(fig_expr_class_dist_wrt_closest_bregion_pos_24H app) ##}}
+  \subfigure[36h]{\includegraphics[height=7cm]{##= path App_region_assoc.(fig_expr_class_dist_wrt_closest_bregion_pos_36H app) ##}}
+  \caption{Same as fig.~\ref{fig:expr-class-wrt-closest-region} but troncated at 6, 12, 24 and 36 hours.}
+  \label{fig:expr-class-wrt-closest-region-times}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \subfigure[upregulated]{\includegraphics[height=7cm]{##= path App_region_assoc.(fig_upregulated_prop_wrt_closest_bregion_pos app) ##}}
+  \subfigure[downregulated]{\includegraphics[height=7cm]{##= path App_region_assoc.(fig_downregulated_prop_wrt_closest_bregion_pos app) ##}}
+  \caption{Alternative representation to
+    fig.~\ref{fig:expr-class-wrt-closest-region-times}. Represents the
+    proportion of (a) up- (b) down-regulated genes as a function of
+    the closest binding region position for all the time points. }
+  \label{fig:expr-prop-wrt-closest-region}
+\end{figure}
+
+\end{document}
