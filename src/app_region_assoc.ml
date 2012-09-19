@@ -213,7 +213,44 @@ f <- function(path, position, freq_6H,freq_12H,freq_24H,freq_36H,freq_48H) {
   ignore (script (p "downregulated") (vec downregulated_6H) (vec downregulated_12H) (vec downregulated_24H) (vec downregulated_36H) (vec downregulated_48H))
 
 
-let app = Guizmin.d0 ("rar.app_region_assoc[r18]", []) (fun path ->
+let comodulation_under_common_bregion genes expression_of_gene_id =
+  let radius = 20000 in
+  let tss_of_gene g = List.map Transcript.tss g.Gene.transcripts in
+  let common_element re1 re2 = 
+    Set.exists (fun x -> Set.mem x re2) re1
+  in
+  let graph = 
+    Region_assoc.gene_re_graph 
+      tss_of_gene identity 
+      ~radius
+      (List.enum genes) (Resources.panRAR_regions ())
+    |> List.of_enum
+  and f pred (g1, re1) (g2, re2) =
+    let pred g = pred (expression_of_gene_id g.Gene.id) in
+    common_element re1 re2, 
+    (pred g1 && pred g2)
+  and f2 pred1 pred2 (g1, re1) (g2, re2) =
+    let pred1 g = pred1 (expression_of_gene_id g.Gene.id) 
+    and pred2 g = pred2 (expression_of_gene_id g.Gene.id) in
+    common_element re1 re2, 
+    ((pred1 g1 && pred2 g2) || (pred1 g2 && pred2 g1))
+  and filter (g1,_) (g2,_) = 
+    List.exists 
+      (fun t1 -> 
+        List.exists
+          (fun t2 -> 
+            try Location.dist (Transcript.tss t1) (Transcript.tss t2) < 2 * radius
+            with Invalid_argument _ -> false)
+          g2.Gene.transcripts)
+      g1.Gene.transcripts
+  in 
+  let open Rnaseq_table in
+  Enum.iter 
+    (fun ((b1, b2), c) -> Printf.printf "%b\t%b\t%d\n" b1 b2 c)
+    (Biocaml_accu.product ~filter (f2 upregulated_12H downregulated_12H) graph graph) ;
+  exit 42 
+
+let app = Guizmin.d0 ("rar.app_region_assoc[r19]", []) (fun path ->
   ignore (Sys.command ("mkdir -p " ^ path)) ;
   (*  *)
   let closest_gene_for_each_bregion_list = List.of_enum (closest_gene_for_each_bregion ()) in
@@ -222,17 +259,19 @@ let app = Guizmin.d0 ("rar.app_region_assoc[r18]", []) (fun path ->
       (fun r -> float_of_int r#relpos2transcript) 
       closest_gene_for_each_bregion_list in
   let genes = List.of_enum (Ensembl.genes_enum (Resources.gtf ())) in
+  let expression_of_gene_id = 
+    fun_of_enum_exn
+      (fun r -> r.Rnaseq_table.ensembl_gene_id)
+      identity
+      (Resources.rnaseq_table ())
+  in 
+  comodulation_under_common_bregion genes expression_of_gene_id ;
   Rnaseq_table.(
     let closest_bregion_of_gene_id = 
       fun_of_enum_exn
         (fun r -> r#gene.Gene.id) 
         (fun r -> r#position2tss)
         (closest_bregion_for_each_gene ())
-    and expression_of_gene_id = 
-      fun_of_enum_exn
-        (fun r -> r.Rnaseq_table.ensembl_gene_id)
-        identity
-        (Resources.rnaseq_table ())
     in
     let f = fig_expr_class_dist_wrt_closest_bregion_pos path genes closest_bregion_of_gene_id expression_of_gene_id in 
     f upregulated downregulated expressed "" ;

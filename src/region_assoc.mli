@@ -28,12 +28,32 @@ val score :
     b's weighted by a score which reflects how usual the position of b
     with respect to a is, compared to a control *)
 
+val gene_re_graph : 
+  ('gene -> Location.t list) ->
+  ('re -> Location.t) ->
+  radius:int -> 
+  'gene Enum.t -> 're Enum.t -> ('gene * 're Set.t) Enum.t
+(** [gene_re_graph tss_of_loc loc_of_re ~radius genes rels] builds a
+    graph between genes and response elements. The argument
+    [tss_of_loc] is supposed to return the locations of all TSS of
+    the gene. *)
+
 (** TODO 
 
-val score_stranded_version :
-   (string * int) array ->
-   ('a -> string location * [`Sense | `Antisense]) -> 'a Enum.t ->
-   ('b -> string location) -> 'b Enum.t ->
-   ('a * 'b * float) Enum.t
+    val score_stranded_version :
+    (string * int) array ->
+    ('a -> string location * [`Sense | `Antisense]) -> 'a Enum.t ->
+    ('b -> string location) -> 'b Enum.t ->
+    ('a * 'b * float) Enum.t
 
 *)
+
+
+
+
+
+
+
+
+
+

@@ -82,6 +82,20 @@ let score chrom_size fa a fb b =
       )))
   |> Enum.concat
 
+let gene_re_graph tss_of_gene loc_of_re ~radius genes relts =
+  let re_map = LMap.of_enum (relts /@ (fun x -> loc_of_re x, x)) in
+  genes /@ (fun g ->
+    let selected_relts = 
+      List.map
+        (fun tss_loc -> 
+          let loc = Location.relmove (-radius) radius tss_loc in
+          LMap.intersecting_elems loc re_map /@ snd |> Set.of_enum)
+        (tss_of_gene g)
+      |> List.fold_left Set.union Set.empty
+    in 
+    (g, selected_relts))
+
+
 
 
 
