@@ -22,3 +22,10 @@ Library rarlib
   Modules:      App_region_assoc, Bed, Gtf, Motif_annotation,
                 Random_regions, Resources, Tsv, Backup, Ensembl, Nhre,
                 Region_assoc, Rnaseq_table, Sle, Ucsc
+
+Document docrar
+  Title:                API reference for RAR scripts
+  Type:                 ocamlbuild (0.3)
+  BuildTools+:          ocamldoc
+  XOCamlbuildPath:      src
+  XOCamlbuildLibraries: rarlib
