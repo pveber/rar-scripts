@@ -96,22 +96,30 @@ let gene_re_graph tss_of_gene loc_of_re ~radius genes relts =
     (g, selected_relts))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+let gene_tss_proximity_graph (type gene) compare_genes tss_of_gene ~radius genes =
+  let module G = struct
+    type t = gene
+    let compare = compare_genes
+  end in
+  let module GSet = Set.Make(G) in
+  let genes = List.of_enum genes in
+  let tss_map = 
+    List.enum genes 
+    /@ (fun g -> 
+      let tss_g = tss_of_gene g in
+      List.enum tss_g /@ (fun tss -> tss, g))
+    |> Enum.concat
+    |> LMap.of_enum
+  in
+  List.enum genes 
+  /@ (fun g ->
+    let neighbours = 
+      (List.enum (tss_of_gene g))
+      /@ (Location.relmove (-radius) radius)
+      /@ (fun zone ->
+        LMap.intersecting_elems zone tss_map /@ snd)
+      |> Enum.concat
+      |> GSet.of_enum
+      |> GSet.elements
+    in g, neighbours)
 

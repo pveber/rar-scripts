@@ -38,6 +38,15 @@ val gene_re_graph :
     [tss_of_loc] is supposed to return the locations of all TSS of
     the gene. *)
 
+val gene_tss_proximity_graph : 
+  ('gene -> 'gene -> int) -> 
+  ('gene -> Location.t list) ->
+  radius:int -> 
+  'gene Enum.t -> ('gene * 'gene list) Enum.t
+(** [gene_tss_proximity_graph tss_of_gene ~radius genes] builds a
+    graph between genes. The argument [tss_of_gene] is supposed to
+    return the locations of all TSS of the gene. *)
+
 (** TODO 
 
     val score_stranded_version :
